@@ -22,7 +22,7 @@ impl<T> PosInt for T where T:
 {}
 
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Default, Debug)]
 pub struct Bitset<const N: usize, Z = usize>(pub Z)
     where Z: PosInt;
 
@@ -52,6 +52,14 @@ impl<Z, const N: usize> FromIterator<Z> for Bitset<N,Z>
     }
 }
 
+#[macro_export]
+macro_rules! byteset {
+    ( $( $digit:expr ),* $(,)?) => {
+        Bitset::<8>::from_iter([ $( $digit ),* ])
+    };
+}
+
+// == TRAITS == //
 impl<Z, const N: usize> Deref for Bitset<N,Z>
     where Z: PosInt
 {
