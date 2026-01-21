@@ -1,4 +1,4 @@
-use bitset::*;
+use natbitset::*;
 
 
 #[test] fn intersect_pure()
