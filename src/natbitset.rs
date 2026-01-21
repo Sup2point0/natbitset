@@ -4,6 +4,18 @@ use std::collections::HashSet;
 use num_traits as nums;
 
 
+pub trait AnyInt:
+    nums::PrimInt
+    + nums::NumAssign
+    + iter::Sum
+{}
+
+impl<T> AnyInt for T where T:
+    nums::PrimInt
+    + nums::NumAssign
+    + iter::Sum
+{}
+
 pub trait PosInt:
     nums::PrimInt
     + nums::Unsigned
@@ -178,21 +190,32 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
     }
 }
 
-impl<Z, const N: usize, const M: usize> From<[Z; M]> for Bitset<N,Z> where Z: PosInt
+impl<Z, T, const N: usize, const M: usize> From<[T; M]> for Bitset<N,Z>
+    where Z: PosInt, T: AnyInt
 {
-    fn from(digits: [Z; M]) -> Self {
+    fn from(digits: [T; M]) -> Self {
         Self::from_iter(digits)
     }
 }
 
-impl<Z, const N: usize> FromIterator<Z> for Bitset<N,Z> where Z: PosInt
+/* NOTE: Z != T because one is the incoming integer type (probably defaulted to `i32`) while the other is the underlying representation type that will be used by the `Bitset` =) */
+impl<Z, T, const N: usize> FromIterator<T> for Bitset<N,Z>
+    where Z: PosInt, T: AnyInt
 {
+    /// Construct a `Bitset` from an iterator of integers, accepting only those in `1..=N` and ignoring others.
     fn from_iter<I>(iter: I) -> Self
-        where I: IntoIterator<Item = Z>
+        where I: IntoIterator<Item = T>
     {
         Self(
             iter.into_iter()
-                .map(|z| Z::one() << into_usize(z) - 1)
+                .filter_map(|t| {
+                    let z = T::zero();
+                    let n = nums::cast::<usize, T>(N).unwrap();
+
+                    (n >= t && t > z).then(||
+                        Z::one() << into_usize(t - T::one())
+                    )
+                })
                 .sum()
         )
     }
@@ -215,15 +238,17 @@ impl<Z, const N: usize> FromIterator<Z> for Bitset<N,Z> where Z: PosInt
 /// ```
 #[macro_export]
 macro_rules! byteset {
-    ( $( $digit:expr ),* $(,)?) =>
-    {
+    () => {
+        Bitset::<8, u8>(0)
+    };
+
+    ( $( $digit:expr ),* $(,)?) => {
         Bitset::<8, u8>::from_iter([ $( $digit ),* ])
     };
 
-    ( $lower:expr ; $upper:expr ) =>
-    {
+    ( $lower:expr ; $upper:expr ) => {
         Bitset::<8, u8>::from_iter($lower ..= $upper)
-    }
+    };
 }
 
 // == TRAITS == //
@@ -521,9 +546,9 @@ fn into_z<Z>(u: usize) -> Z
     nums::cast::<usize, Z>(u).unwrap()
 }
 
-/// Cast a `Z` into a `usize`.
-fn into_usize<Z>(z: Z) -> usize
-    where Z: PosInt
+/// Cast an integer into a `usize`.
+fn into_usize<Z>(n: Z) -> usize
+    where Z: AnyInt
 {
-    nums::cast::<Z, usize>(z).unwrap()
+    nums::cast::<Z, usize>(n).unwrap()
 }
