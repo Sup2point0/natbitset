@@ -35,7 +35,7 @@ pub type Byteset<const N: usize> = Bitset::<N, u8>;
 /// # Type Parameters
 /// 
 /// - `N`: The maximum digit stored by the set.
-/// - `Z`: The unsigned integer type used to store the bitflags. Defaults to `usize`, but smaller types like `u8` are very likely to be more suitable if `N` is small.
+/// - `Z`: The unsigned integer type used to store the bitflags, e.g. `u8`, `u16`, `usize`. Defaults to `usize`, but smaller types like `u8` are very likely to be more suitable if `N` is small.
 /// 
 /// # Usage
 /// 
@@ -63,7 +63,7 @@ pub type Byteset<const N: usize> = Bitset::<N, u8>;
 /// 
 /// ## Access
 /// 
-/// `Bitset<Z>` implements `Deref<Z>`, so the underlying bits can easily be accessed with `*bitset`.
+/// `Bitset<Z>` implements `Deref<Z>`, so the underlying bits can easily be accessed by dereferencing through `*bitset`.
 /// 
 /// ```rust
 /// # use natbitset::*;
@@ -76,7 +76,7 @@ pub type Byteset<const N: usize> = Bitset::<N, u8>;
 /// 
 /// ## Operations
 /// 
-/// The union, intersection, difference set operations can be accessed via the `|`, `&`, `-` operations.
+/// The union, intersection, difference set operations can be accessed via the `|`, `&`, `-` operations, respectively.
 /// 
 /// ```rust
 /// # use natbitset::*;
@@ -88,13 +88,25 @@ pub type Byteset<const N: usize> = Bitset::<N, u8>;
 /// // assert_eq!(left - right, byteset![1,2]);
 /// ```
 #[derive(Copy, Clone, PartialEq, Eq, Default, Debug)]
-pub struct Bitset<const N: usize, Z = usize>(pub Z)
+pub struct Bitset<const N: usize, Z = usize>(
+    /// The underlying integer used to represent the set. When written in binary, each bit represents whether a number is present in the set (`1` if present, `0` if not).
+    /// 
+    /// Access this number by dereferencing a [`Bitset`]:
+    /// 
+    /// ```rust
+    /// # use natbitset::*;
+    /// let bitset = Bitset::<4>(0b_1011);
+    /// let bits = *bitset;
+    /// assert_eq!(bits, 0b_1011);
+    /// ```
+    pub Z
+)
     where Z: PosInt;
 
 // == CONSTRUCTORS == //
 impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 {
-    /// Construct a `Bitset` with no bits enabled.
+    /// Construct a set with no bits enabled.
     /// 
     /// # Usage
     /// 
@@ -108,7 +120,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         Self( Z::zero() )
     }
 
-    /// Construct a `Bitset` with all bits enabled.
+    /// Construct a set with all bits enabled.
     /// 
     /// # Usage
     /// 
@@ -349,7 +361,7 @@ impl<Z, const N: usize> Bitset<N,Z>
         Ok(())
     }
 
-    /// Intersect `self` with `other`, panicking if the resultant intersection is empty.
+    /// Intersect `self` with `other`, panicking with debug output if the resultant intersection is empty.
     pub fn intersect_nonempty_panicking(&mut self, other: impl Into<Self>)
     {
         match self.intersect_nonempty(other) {
