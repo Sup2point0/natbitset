@@ -211,6 +211,40 @@ impl<Z, const N: usize> ops::BitAndAssign for Bitset<N,Z> where Z: PosInt {
 // == QUERY METHODS == //
 impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 {
+    /// Is the set empty?
+    pub fn is_empty(&self) -> bool {
+        **self == Z::zero()
+    }
+
+    /// Does the set contain only 1 element?
+    pub fn is_single(&self) -> bool {
+        self.size() == 1
+    }
+
+    /// Is the set full? (i.e. it contains every integer in `1..=N`)
+    pub fn is_full(&self) -> bool {
+        *self == Self::all()
+    }
+
+    /// How many integers are in the set?
+    pub fn size(&self) -> usize
+    {
+        let mut out = 0;
+        let mut val = **self;
+        let mut power = Z::one() << (N-1);
+
+        for _ in (0..N).rev() {
+            if val >= power {
+                val -= power;
+                out += 1;
+            }
+            
+            power >>= Z::one();
+        }
+
+        out
+    }
+
     /// Get the integers present in the set.
     pub fn members(&self) -> HashSet<usize>
     {
@@ -243,33 +277,9 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
             .next()
     }
 
-    /// How many integers are in the set?
-    pub fn size(&self) -> usize
+    pub fn single(&self) -> Option<usize>
     {
-        let mut out = 0;
-        let mut val = **self;
-        let mut power = Z::one() << N;
-
-        for _ in (1..=N).rev() {
-            power >>= Z::one();
-
-            if val >= power {
-                val -= power;
-                out += 1;
-            }
-        }
-
-        out
-    }
-
-    /// Is the set empty?
-    pub fn is_empty(&self) -> bool {
-        **self == Z::zero()
-    }
-
-    /// Is the set full? (i.e. it contains every integer in `1..=N`)
-    pub fn is_full(&self) -> bool {
-        *self == Self::all()
+        self.is_single().then_some(into_usize(**self))
     }
 }
 
