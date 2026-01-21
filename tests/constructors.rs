@@ -17,10 +17,16 @@ use natbitset::*;
     assert_eq!( *Bitset::<8>::all(), 0b_1111_1111 );
 }
 
+#[test] fn from_array()
+{
+    assert_eq!( *Bitset::<4>::from([1,2,3]), 0b_0111 );
+    assert_eq!( *Bitset::<8>::from([1,2,3]), 0b_0111 );
+}
+
 #[test] fn from_iter()
 {
-    assert_eq!( *Bitset::<8>::from_iter([1,2,3]), 0b_0111 );
-    assert_eq!( *Bitset::<8>::from_iter([2,4,7,8]), 0b_1100_1010 );
+    assert_eq!( *Bitset::<8>::from_iter(vec![1,2,3]), 0b_0111 );
+    assert_eq!( *Bitset::<8>::from_iter(vec![2,4,7,8]), 0b_1100_1010 );
 }
 
 #[test] fn byteset()
