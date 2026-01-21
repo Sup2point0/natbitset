@@ -1,7 +1,14 @@
 [package]
 name = "natbitset"
 version = "0.1.0"
+authors = ["Sup#2.0"]
 edition = "2024"
+
+description = "A super-lightweight bitset implementation for positive integers."
+repository = "https://github.com/Sup2point0/natbitset"
+readme = "src/readme.md"
+documentation = "https://docs.rs/natbitset/latest"
+license = "MIT"
 
 [dependencies]
 num-traits = "0.2.19"
