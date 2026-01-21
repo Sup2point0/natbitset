@@ -4,24 +4,29 @@ use natbitset::*;
 #[test] fn intersect_pure()
 {
     assert_eq!(
-        Bitset::<8>::none() & Bitset::<8>::all(),
-        Bitset::<8>::none()
+        byteset![] & byteset![1;8],
+        byteset![]
     );
 
     assert_eq!(
-        Bitset::<8>::from_iter([1,2,3,4,5]) & Bitset::<8>::from_iter([2,5]),
-        Bitset::<8>::from_iter([2,5])
+        byteset![1;4] & byteset![5;8],
+        byteset![]
     );
 
     assert_eq!(
-        Bitset::<8>::from_iter([1,2,3]) & Bitset::<8>::from_iter([3,5]),
-        Bitset::<8>::from_iter([3])
+        byteset![1,2,3,4,5] & byteset![2,5],
+        byteset![2,5]
+    );
+
+    assert_eq!(
+        byteset![1,2,3] & byteset![3,4],
+        byteset![3]
     );
 }
 
 #[test] fn intersect_inplace()
 {
-    let mut bs = Bitset::<8>::from_iter([1,2,3,4]);
-    bs &= Bitset::<8>::from_iter([1,2,5]);
-    assert_eq!( bs, Bitset::<8>::from_iter([1,2]) );
+    let mut bits = byteset![1,2,3,4];
+    bits &= byteset![1,2,5];
+    assert_eq!( bits, byteset![1,2] );
 }

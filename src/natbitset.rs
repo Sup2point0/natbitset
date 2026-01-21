@@ -76,7 +76,9 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
     /// assert_eq!(*off, 0b_1111);
     /// ```
     pub fn all() -> Self {
-        Self( (Z::one() << N) - Z::one() )
+        let z = (1 << N) - 1;
+        let z = into_z(z);
+        Self(z)
     }
 }
 
@@ -279,7 +281,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 
     pub fn single(&self) -> Option<usize>
     {
-        self.is_single().then_some(into_usize(**self))
+        self.is_single().then_some(self.trailing_zeros() as usize + 1)
     }
 }
 
@@ -315,7 +317,14 @@ impl<Z, const N: usize> Bitset<N,Z>
 }
 
 
-/// Cast a numeric type into `usize`.
+/// Cast a `usize` into a `Z`.
+fn into_z<Z>(u: usize) -> Z
+    where Z: PosInt
+{
+    nums::cast::<usize, Z>(u).unwrap()
+}
+
+/// Cast a `Z` into a `usize`.
 fn into_usize<Z>(z: Z) -> usize
     where Z: PosInt
 {

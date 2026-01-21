@@ -29,8 +29,12 @@ use natbitset::*;
     assert_eq!( *Bitset::<8>::from_iter(vec![2,4,7,8]), 0b_1100_1010 );
 }
 
-#[test] fn byteset()
+#[test] fn byteset_macro()
 {
-    assert_eq!( *byteset!(1,2,3), 0b_0111 );
-    assert_eq!( *byteset!(2,4,7,8), 0b_1100_1010 );
+    assert_eq!( *byteset![1], 0b_0001 );
+    assert_eq!( *byteset![1,2,3], 0b_0111 );
+    assert_eq!( *byteset![2,4,7,8], 0b_1100_1010 );
+
+    assert_eq!( byteset![1;8], Bitset::<8, u8>::from([1,2,3,4,5,6,7,8]) );
+    assert_eq!( byteset![1;8], Bitset::<8, u8>::from_iter(1..=8) );
 }
