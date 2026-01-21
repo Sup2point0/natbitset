@@ -41,9 +41,52 @@ pub type Byteset<const N: usize> = Bitset::<N, u8>;
 /// 
 /// ## Instantiation
 /// 
-/// ## Operations
+/// ```rust
+/// # use natbitset::*;
+/// // A bitset representing numbers 1..=3
+/// let bitset = Bitset::<3, u8>::from([1,2,3]);
+/// 
+/// // A bitset representing numbers 1..=8
+/// let bitset = Bitset::<8, u8>::from([1,2,3,4,5,6,7,8]);
+/// // or more conveniently:
+/// let bitset = Bitset::<8, u8>::all();
+/// // or even more conveniently:
+/// let bitset = byteset![1;8];
+/// 
+/// // A bitset representing numbers 1..=1000
+/// let bitset = Bitset::<1000, u16>::none();
+/// 
+/// // Or instantiate manually, passing the bit representation directly:
+/// let bitset = Bitset::<4, u8>(0b_0101);
+/// assert_eq!(bitset, Bitset::<4, u8>::from([1,3]));
+/// ```
+/// 
+/// ## Access
 /// 
 /// `Bitset<Z>` implements `Deref<Z>`, so the underlying bits can easily be accessed with `*bitset`.
+/// 
+/// ```rust
+/// # use natbitset::*;
+/// let mut bitset = Bitset::<8>(0b_0100_1010);
+/// assert_eq!(*bitset, 0b_0100_1010);
+/// 
+/// *bitset += 1;
+/// assert_eq!(*bitset, 0b_0100_1011)
+/// ```
+/// 
+/// ## Operations
+/// 
+/// The union, intersection, difference set operations can be accessed via the `|`, `&`, `-` operations.
+/// 
+/// ```rust
+/// # use natbitset::*;
+/// let left = byteset![1,2,3];
+/// let right = byteset![3,4,5];
+/// 
+/// assert_eq!(left | right, byteset![1;5]);
+/// assert_eq!(left & right, byteset![3]);
+/// // assert_eq!(left - right, byteset![1,2]);
+/// ```
 #[derive(Copy, Clone, PartialEq, Eq, Default, Debug)]
 pub struct Bitset<const N: usize, Z = usize>(pub Z)
     where Z: PosInt;
@@ -110,12 +153,12 @@ impl<Z, const N: usize> FromIterator<Z> for Bitset<N,Z> where Z: PosInt
 /// # use natbitset::*;
 /// 
 /// // list integers in the set
-/// let bits = byteset![1,2,4];
-/// assert_eq!(*bits, 0b_1011);
+/// let bitset = byteset![1,2,4];
+/// assert_eq!(*bitset, 0b_1011);
 /// 
 /// // provide bounds (inclusive) inclusive of range
-/// let bits = byteset![3; 7];
-/// assert_eq!(*bits, 0b_0111_1100);
+/// let bitset = byteset![3; 7];
+/// assert_eq!(*bitset, 0b_0111_1100);
 /// ```
 #[macro_export]
 macro_rules! byteset {
