@@ -35,6 +35,4 @@
 mod natbitset;
 pub use natbitset::{
     Bitset,
-    Bitset8,
-    Bitset16,
 };

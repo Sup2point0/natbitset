@@ -27,26 +27,24 @@ impl<T> PosInt for T where T:
 {}
 
 
-/// A `Bitset(u8)` which can store integer bitflags up to `N = 256`.
-pub type Bitset8<const N: usize> = Bitset::<N, u8>;
-
-/// A `Bitset(u16)` which can store integer bitflags up to `N = 65536`.
-pub type Bitset16<const N: usize> = Bitset::<N, u8>;
-
-
 /// A set of bitflags representing positive integers in the range `1..=N`.
 /// 
 /// For the rationale behind how this struct works, please visit the [crate root](crate#rationale).
 /// 
 /// # Type Parameters
 /// 
-/// - `N`: The maximum integer represented by the set.
-///   - A `Bitset<N, _>` represents integers in the range `1..=N`, and will ignore integers outside this range.
-/// - `Z`: The unsigned integer type used to store the bitflags (e.g. `u8`, `u16`, `usize`).
-///   - Defaults to `usize`, but smaller types like `u8` are very likely to be more suitable if `N` is small.
-///   - A `Bitset<_, u8>` can already represent the integers `1..=256`, which should be more than enough for many use cases.
+/// - `N` (required): The maximum integer represented by the set.
+///   - A `Bitset<N, _>` represents integers `1..=N`, and will ignore integers outside this range.
+/// - `Z` (optional): The unsigned integer type used to store the bitflags (e.g. `u8`, `u16`, `usize`).
+///   - Defaults to `u8`, which allows the set to represent integers `1..=256`, which should be more than enough to cover most use cases.
 /// 
-/// A subtle distinction is that `Z` dictates how many integers the bitset *could* represent, while `N` tells the struct and maintainer how many it *does* represent.
+/// ## Notes
+/// 
+/// - A subtle distinction is that `Z` dictates how many integers the bitset *could* represent, while `N` tells the struct and programmer how many it actually *does* represent.
+/// - To optimise space efficiency, you should make `Z` as small as possible for your use case `N`.
+///   - However, if you make it too small such that it can’t represent integers up to `N`, you’ll likely encounter overflow errors caused by bitshifting.[^overflow]
+/// 
+/// [^overflow]: This will hopefully be remedied in future.
 /// 
 /// # Usage
 /// 
@@ -61,25 +59,37 @@ pub type Bitset16<const N: usize> = Bitset::<N, u8>;
 /// ```rust
 /// # use natbitset::*;
 /// // A bitset representing numbers 1..=3
-/// let bitset = Bitset::<3, u8>::from([1,2,3]);
+/// let bitset = Bitset::<3>::from([1,2,3]);
 /// 
 /// // A bitset representing numbers 1..=8
-/// let bitset = Bitset::<8, u8>::from([1,2,3,4,5,6,7,8]);
+/// let bitset = Bitset::<8>::from([1,2,3,4,5,6,7,8]);
 /// // or more conveniently:
-/// let bitset = Bitset::<8, u8>::all();
+/// let bitset = Bitset::<8>::all();
 /// // or even more conveniently:
 /// let bitset = byteset![1;8];
 /// 
-/// // A bitset representing numbers 1..=1000
+/// // A bitset representing numbers 1..=1000 (need a larger `Z`!)
 /// let bitset = Bitset::<1000, u16>::none();
 /// 
 /// // Or instantiate manually, passing the bit representation directly:
-/// let bitset = Bitset::<4, u8>(0b_0101);
-/// let equiv  = Bitset::<4, u8>::from([1,3]);
+/// let bitset = Bitset::<4>(0b_0101);
+/// let equiv  = Bitset::<4>::from([1,3]);
 /// assert_eq!(bitset, equiv);
 /// ```
 /// 
 /// ## Access
+/// 
+/// To retrieve the integers the bitset represents, use `.members()`:
+/// 
+/// ```rust
+/// # use natbitset::*;
+/// use std::collections::HashSet;
+/// 
+/// let bitset = Bitset::<7>::from([1,3,7]);
+/// let digits = bitset.members();
+/// 
+/// assert_eq!(digits, HashSet::from([1,3,7]));
+/// ```
 /// 
 /// `Bitset<Z>` implements `Deref<Z>`, so the underlying bits can easily be accessed by dereferencing through `*bitset`.
 /// 
@@ -119,7 +129,7 @@ pub type Bitset16<const N: usize> = Bitset::<N, u8>;
 /// assert_eq!(bitset, byteset![2,3]);
 /// ```
 #[derive(Copy, Clone, PartialEq, Eq, Default, Debug)]
-pub struct Bitset<const N: usize, Z = usize>(
+pub struct Bitset<const N: usize, Z = u8>(
     /// The underlying integer used to represent the set. When written in binary, each bit represents whether a number is present in the set (`1` if present, `0` if not).
     /// 
     /// Access this integer by dereferencing a [`Bitset`]:
