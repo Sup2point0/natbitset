@@ -57,6 +57,6 @@ use natbitset::*;
 #[test] fn add_inplace()
 {
     let mut bits = byteset![1;4];
-    bits /= byteset![1,2,5];
-    assert_eq!( bits, byteset![3,4] );
+    bits += 5;
+    assert_eq!( bits, byteset![1;5] );
 }

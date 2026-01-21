@@ -252,60 +252,6 @@ impl<Z, const N: usize> Iterator for BitsetIterator<N,Z> where Z: PosInt {
 }
 
 // == SET OPERATIONS == //
-impl<Z, R, const N: usize> ops::Add<R> for Bitset<N,Z>
-    where Z: PosInt, R: Into<Z>,
-{
-    type Output = Self;
-
-    /// Add an integer `other` to the set. Does nothing if the integer is not in the range `1..=N`.
-    fn add(self, other: R) -> Self
-    {
-        let other = other.into();
-
-        if N >= into_usize(other) {
-            let bit = Z::one() << (other - Z::one());
-            Bitset(*self | bit)
-        }
-        else {
-            self
-        }
-    }
-}
-impl<Z, R, const N: usize> ops::AddAssign<R> for Bitset<N,Z>
-    where Z: PosInt, R: Into<Z>,
-{
-    fn add_assign(&mut self, other: R) {
-        *self = *self + other;
-    }
-}
-
-impl<Z, R, const N: usize> ops::Sub<R> for Bitset<N,Z>
-    where Z: PosInt, R: Into<Z>,
-{
-    type Output = Self;
-
-    fn sub(self, other: R) -> Self
-    {
-        let other = other.into();
-
-        if N >= into_usize(other) {
-            let bit = Z::one() << (other - Z::one());
-            let intersect = *self & bit;
-            Bitset(*self - intersect)
-        }
-        else {
-            self
-        }
-    }
-}
-impl<Z, R, const N: usize> ops::SubAssign<R> for Bitset<N,Z>
-    where Z: PosInt, R: Into<Z>,
-{
-    fn sub_assign(&mut self, other: R) {
-        *self = *self - other;
-    }
-}
-
 impl<Z, const N: usize> ops::BitOr for Bitset<N,Z> where Z: PosInt {
     type Output = Self;
 
@@ -343,6 +289,63 @@ impl<Z, const N: usize> ops::DivAssign for Bitset<N,Z> where Z: PosInt {
     fn div_assign(&mut self, other: Self) {
         let intersect = **self & *other;
         **self -= intersect;
+    }
+}
+
+impl<Z, R, const N: usize> ops::Add<R> for Bitset<N,Z>
+    where Z: PosInt, R: Into<Z>,
+{
+    type Output = Self;
+
+    /// Add an integer `other` to the set. Does nothing if `other` is not in the range `1..=N`.
+    fn add(self, other: R) -> Self
+    {
+        let other = other.into();
+
+        if N >= into_usize(other) {
+            let bit = Z::one() << (other - Z::one());
+            Bitset(*self | bit)
+        }
+        else {
+            self
+        }
+    }
+}
+impl<Z, R, const N: usize> ops::AddAssign<R> for Bitset<N,Z>
+    where Z: PosInt, R: Into<Z>,
+{
+    /// Add an integer `other` to the set. Does nothing if `other` is not in the range `1..=N`.
+    fn add_assign(&mut self, other: R) {
+        *self = *self + other;
+    }
+}
+
+impl<Z, R, const N: usize> ops::Sub<R> for Bitset<N,Z>
+    where Z: PosInt, R: Into<Z>,
+{
+    type Output = Self;
+
+    /// Remove an integer `other` from the set. Does nothing if `other` is not in the range `1..=N`.
+    fn sub(self, other: R) -> Self
+    {
+        let other = other.into();
+
+        if N >= into_usize(other) {
+            let bit = Z::one() << (other - Z::one());
+            let intersect = *self & bit;
+            Bitset(*self - intersect)
+        }
+        else {
+            self
+        }
+    }
+}
+impl<Z, R, const N: usize> ops::SubAssign<R> for Bitset<N,Z>
+    where Z: PosInt, R: Into<Z>,
+{
+    /// Remove an integer `other` from the set. Does nothing if `other` is not in the range `1..=N`.
+    fn sub_assign(&mut self, other: R) {
+        *self = *self - other;
     }
 }
 
@@ -384,6 +387,18 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
     }
 
     /// Get the integers present in the set.
+    /// 
+    /// # Usage
+    /// 
+    /// ```rust
+    /// # use natbitset::*;
+    /// use std::collections::HashSet;
+    /// 
+    /// let bitset = byteset![1,3,7];
+    /// let nums = bitset.members();
+    /// 
+    /// assert_eq!(nums, HashSet::from([1,3,7]));
+    /// ```
     pub fn members(&self) -> HashSet<usize>
     {
         let mut out = HashSet::new();
@@ -403,6 +418,12 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
     }
 
     /// Get the maximum integer present in the set, or `0` if the set is empty.
+    /// 
+    /// ```rust
+    /// # use natbitset::*;
+    /// assert_eq!(byteset![].max(),      None);
+    /// assert_eq!(byteset![1,2,6].max(), Some(6));
+    /// ```
     pub fn max(&self) -> Option<usize>
     {
         (0..N)
@@ -415,8 +436,20 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
             .next()
     }
 
-    pub fn single(&self) -> Option<usize>
-    {
+    /// If the set contains only 1 element, return it in a `Some()`, else `None`.
+    /// 
+    /// This is more convenient and efficient than `bitset.is_single().then_some(bitset.max().unwrap())`.
+    /// 
+    /// # Usage
+    /// 
+    /// ```rust
+    /// # use natbitset::*;
+    /// assert_eq!( byteset![].single(),    None );
+    /// assert_eq!( byteset![1;8].single(), None );
+    /// assert_eq!( byteset![1].single(),   Some(1) );
+    /// assert_eq!( byteset![8].single(),   Some(8) );
+    /// ```
+    pub fn single(&self) -> Option<usize> {
         self.is_single().then_some(self.trailing_zeros() as usize + 1)
     }
 }
