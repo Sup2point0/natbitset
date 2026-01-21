@@ -10,8 +10,8 @@ pub trait PosInt:
     + nums::NumAssign
     + ops::BitOr + ops::BitOrAssign
     + ops::BitAnd + ops::BitAndAssign
-    + ops::Shl + ops::ShlAssign
-    + ops::Shr + ops::ShrAssign
+    + ops::Shl<Output = Self> + ops::ShlAssign
+    + ops::Shr<Output = Self> + ops::ShrAssign
     + iter::Sum
 {}
 
@@ -21,8 +21,8 @@ impl<T> PosInt for T where T:
     + nums::NumAssign
     + ops::BitOr + ops::BitOrAssign
     + ops::BitAnd + ops::BitAndAssign
-    + ops::Shl + ops::ShlAssign
-    + ops::Shr + ops::ShrAssign
+    + ops::Shl<Output = Self> + ops::ShlAssign
+    + ops::Shr<Output = Self> + ops::ShrAssign
     + iter::Sum
 {}
 
@@ -76,7 +76,7 @@ pub type Byteset<const N: usize> = Bitset::<N, u8>;
 /// 
 /// ## Operations
 /// 
-/// The union, intersection, difference set operations can be accessed via the `|`, `&`, `-` operations, respectively.
+/// The union, intersection, difference set operations can be accessed via the `|`, `&`, `/` operations, respectively.
 /// 
 /// ```rust
 /// # use natbitset::*;
@@ -85,7 +85,20 @@ pub type Byteset<const N: usize> = Bitset::<N, u8>;
 /// 
 /// assert_eq!(left | right, byteset![1;5]);
 /// assert_eq!(left & right, byteset![3]);
-/// // assert_eq!(left - right, byteset![1,2]);
+/// assert_eq!(left / right, byteset![1,2]);
+/// ```
+/// 
+/// Add and remove individual elements via the `+` and `-` operators, respectively.
+/// 
+/// ```rust
+/// # use natbitset::*;
+/// let mut bitset = byteset![1,2];
+/// 
+/// bitset += 3;
+/// assert_eq!(bitset, byteset![1,2,3]);
+/// 
+/// bitset -= 1;
+/// assert_eq!(bitset, byteset![2,3]);
 /// ```
 #[derive(Copy, Clone, PartialEq, Eq, Default, Debug)]
 pub struct Bitset<const N: usize, Z = usize>(
@@ -238,7 +251,61 @@ impl<Z, const N: usize> Iterator for BitsetIterator<N,Z> where Z: PosInt {
     }
 }
 
-// == BITWISE OPERATIONS == //
+// == SET OPERATIONS == //
+impl<Z, R, const N: usize> ops::Add<R> for Bitset<N,Z>
+    where Z: PosInt, R: Into<Z>,
+{
+    type Output = Self;
+
+    /// Add an integer `other` to the set. Does nothing if the integer is not in the range `1..=N`.
+    fn add(self, other: R) -> Self
+    {
+        let other = other.into();
+
+        if N >= into_usize(other) {
+            let bit = Z::one() << (other - Z::one());
+            Bitset(*self | bit)
+        }
+        else {
+            self
+        }
+    }
+}
+impl<Z, R, const N: usize> ops::AddAssign<R> for Bitset<N,Z>
+    where Z: PosInt, R: Into<Z>,
+{
+    fn add_assign(&mut self, other: R) {
+        *self = *self + other;
+    }
+}
+
+impl<Z, R, const N: usize> ops::Sub<R> for Bitset<N,Z>
+    where Z: PosInt, R: Into<Z>,
+{
+    type Output = Self;
+
+    fn sub(self, other: R) -> Self
+    {
+        let other = other.into();
+
+        if N >= into_usize(other) {
+            let bit = Z::one() << (other - Z::one());
+            let intersect = *self & bit;
+            Bitset(*self - intersect)
+        }
+        else {
+            self
+        }
+    }
+}
+impl<Z, R, const N: usize> ops::SubAssign<R> for Bitset<N,Z>
+    where Z: PosInt, R: Into<Z>,
+{
+    fn sub_assign(&mut self, other: R) {
+        *self = *self - other;
+    }
+}
+
 impl<Z, const N: usize> ops::BitOr for Bitset<N,Z> where Z: PosInt {
     type Output = Self;
 
@@ -248,7 +315,7 @@ impl<Z, const N: usize> ops::BitOr for Bitset<N,Z> where Z: PosInt {
 }
 impl<Z, const N: usize> ops::BitOrAssign for Bitset<N,Z> where Z: PosInt {
     fn bitor_assign(&mut self, other: Self) {
-        **self |= *other
+        **self |= *other;
     }
 }
 
@@ -261,7 +328,21 @@ impl<Z, const N: usize> ops::BitAnd for Bitset<N,Z> where Z: PosInt {
 }
 impl<Z, const N: usize> ops::BitAndAssign for Bitset<N,Z> where Z: PosInt {
     fn bitand_assign(&mut self, other: Self) {
-        **self &= *other
+        **self &= *other;
+    }
+}
+
+impl<Z, const N: usize> ops::Div for Bitset<N,Z> where Z: PosInt {
+    type Output = Self;
+
+    fn div(self, other: Self) -> Self::Output {
+        Bitset(*self - (*self & *other))
+    }
+}
+impl<Z, const N: usize> ops::DivAssign for Bitset<N,Z> where Z: PosInt {
+    fn div_assign(&mut self, other: Self) {
+        let intersect = **self & *other;
+        **self -= intersect;
     }
 }
 
