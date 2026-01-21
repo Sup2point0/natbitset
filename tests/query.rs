@@ -26,12 +26,12 @@ use natbitset::*;
     assert!( !byteset![1,2].is_full() );
 }
 
-#[test] fn size()
+#[test] fn len()
 {
-    assert_eq!( byteset![].size(), 0 );
-    assert_eq!( byteset![1].size(), 1 );
-    assert_eq!( byteset![1;7].size(), 7 );
-    assert_eq!( byteset![1;8].size(), 8 );
+    assert_eq!( byteset![].len(), 0 );
+    assert_eq!( byteset![1].len(), 1 );
+    assert_eq!( byteset![1;7].len(), 7 );
+    assert_eq!( byteset![1;8].len(), 8 );
 }
 
 #[test] fn members()

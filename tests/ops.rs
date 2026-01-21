@@ -60,3 +60,17 @@ use natbitset::*;
     bits += 5;
     assert_eq!( bits, byteset![1;5] );
 }
+
+#[test] fn sub_pure()
+{
+    assert_eq!( byteset![]    - 1, byteset![] );
+    assert_eq!( byteset![1;4] - 4, byteset![1;3] );
+    assert_eq!( byteset![1;4] - 99, byteset![1;4] );
+}
+
+#[test] fn sub_inplace()
+{
+    let mut bits = byteset![1;5];
+    bits -= 5;
+    assert_eq!( bits, byteset![1;4] );
+}

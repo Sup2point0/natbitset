@@ -28,9 +28,13 @@
 //! 
 //! ## Usage
 //! 
-//! See [`Bitset`] for guidance on how to use the struct.
+//! See [`Bitset`](Bitset#usage) for guidance on how to use the struct.
 
 #[allow(dead_code)]
 
 mod natbitset;
-pub use natbitset::Bitset;
+pub use natbitset::{
+    Bitset,
+    Bitset8,
+    Bitset16,
+};

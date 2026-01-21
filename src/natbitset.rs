@@ -27,19 +27,36 @@ impl<T> PosInt for T where T:
 {}
 
 
-pub type Byteset<const N: usize> = Bitset::<N, u8>;
+/// A `Bitset(u8)` which can store integer bitflags up to `N = 256`.
+pub type Bitset8<const N: usize> = Bitset::<N, u8>;
+
+/// A `Bitset(u16)` which can store integer bitflags up to `N = 65536`.
+pub type Bitset16<const N: usize> = Bitset::<N, u8>;
 
 
 /// A set of bitflags representing positive integers in the range `1..=N`.
 /// 
+/// For the rationale behind how this struct works, please visit the [crate root](crate#rationale).
+/// 
 /// # Type Parameters
 /// 
-/// - `N`: The maximum digit stored by the set.
-/// - `Z`: The unsigned integer type used to store the bitflags, e.g. `u8`, `u16`, `usize`. Defaults to `usize`, but smaller types like `u8` are very likely to be more suitable if `N` is small.
+/// - `N`: The maximum integer represented by the set.
+///   - A `Bitset<N, _>` represents integers in the range `1..=N`, and will ignore integers outside this range.
+/// - `Z`: The unsigned integer type used to store the bitflags (e.g. `u8`, `u16`, `usize`).
+///   - Defaults to `usize`, but smaller types like `u8` are very likely to be more suitable if `N` is small.
+///   - A `Bitset<_, u8>` can already represent the integers `1..=256`, which should be more than enough for many use cases.
+/// 
+/// A subtle distinction is that `Z` dictates how many integers the bitset *could* represent, while `N` tells the struct and maintainer how many it *does* represent.
 /// 
 /// # Usage
 /// 
+/// `Bitset` is designed to be as ergonomic as possible. It does everything a `HashSet<usize>` could, while feeling like a `0b_xxxx_xxxx` bitflag integer.
+/// 
 /// ## Instantiation
+/// 
+/// When instantiating a `Bitset`, you’ll need to specify `N`.[^infer]
+/// 
+/// [^infer]: Unfortunately, `N` cannot be inferred from a collection even if we wanted to, since it’s a `const` generic. However, in future, a macro constructor could achieve this at compile time!
 /// 
 /// ```rust
 /// # use natbitset::*;
@@ -58,7 +75,8 @@ pub type Byteset<const N: usize> = Bitset::<N, u8>;
 /// 
 /// // Or instantiate manually, passing the bit representation directly:
 /// let bitset = Bitset::<4, u8>(0b_0101);
-/// assert_eq!(bitset, Bitset::<4, u8>::from([1,3]));
+/// let equiv  = Bitset::<4, u8>::from([1,3]);
+/// assert_eq!(bitset, equiv);
 /// ```
 /// 
 /// ## Access
@@ -104,7 +122,7 @@ pub type Byteset<const N: usize> = Bitset::<N, u8>;
 pub struct Bitset<const N: usize, Z = usize>(
     /// The underlying integer used to represent the set. When written in binary, each bit represents whether a number is present in the set (`1` if present, `0` if not).
     /// 
-    /// Access this number by dereferencing a [`Bitset`]:
+    /// Access this integer by dereferencing a [`Bitset`]:
     /// 
     /// ```rust
     /// # use natbitset::*;
@@ -359,7 +377,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 
     /// Does the set contain only 1 element?
     pub fn is_single(&self) -> bool {
-        self.size() == 1
+        self.len() == 1
     }
 
     /// Is the set full? (i.e. it contains every integer in `1..=N`)
@@ -368,7 +386,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
     }
 
     /// How many integers are in the set?
-    pub fn size(&self) -> usize
+    pub fn len(&self) -> usize
     {
         let mut out = 0;
         let mut val = **self;
