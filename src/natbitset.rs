@@ -206,16 +206,16 @@ impl<Z, T, const N: usize> FromIterator<T> for Bitset<N,Z>
     fn from_iter<I>(iter: I) -> Self
         where I: IntoIterator<Item = T>
     {
+        let n = nums::cast::<usize, T>(N).unwrap();
+        let zero = T::zero();
+
         Self(
             iter.into_iter()
-                .filter_map(|t| {
-                    let z = T::zero();
-                    let n = nums::cast::<usize, T>(N).unwrap();
-
-                    (n >= t && t > z).then(||
+                .filter_map(|t|
+                    (n >= t && t > zero).then(||
                         Z::one() << into_usize(t - T::one())
                     )
-                })
+                )
                 .sum()
         )
     }
@@ -346,17 +346,17 @@ impl<Z, const N: usize> ops::DivAssign for Bitset<N,Z> where Z: PosInt {
 }
 
 impl<Z, R, const N: usize> ops::Add<R> for Bitset<N,Z>
-    where Z: PosInt, R: Into<Z>,
+    where Z: PosInt, R: TryInto<usize>,
 {
     type Output = Self;
 
     /// Add an integer `other` to the set. Does nothing if `other` is not in the range `1..=N`.
     fn add(self, other: R) -> Self
     {
-        let other = other.into();
-
-        if N >= into_usize(other) {
-            let bit = Z::one() << (other - Z::one());
+        if let Ok(other) = other.try_into()
+        && N >= other
+        {
+            let bit = Z::one() << (other - 1);
             Bitset(*self | bit)
         }
         else {
@@ -365,7 +365,7 @@ impl<Z, R, const N: usize> ops::Add<R> for Bitset<N,Z>
     }
 }
 impl<Z, R, const N: usize> ops::AddAssign<R> for Bitset<N,Z>
-    where Z: PosInt, R: Into<Z>,
+    where Z: PosInt, R: TryInto<usize>,
 {
     /// Add an integer `other` to the set. Does nothing if `other` is not in the range `1..=N`.
     fn add_assign(&mut self, other: R) {
@@ -374,17 +374,17 @@ impl<Z, R, const N: usize> ops::AddAssign<R> for Bitset<N,Z>
 }
 
 impl<Z, R, const N: usize> ops::Sub<R> for Bitset<N,Z>
-    where Z: PosInt, R: Into<Z>,
+    where Z: PosInt, R: TryInto<usize>,
 {
     type Output = Self;
 
     /// Remove an integer `other` from the set. Does nothing if `other` is not in the range `1..=N`.
     fn sub(self, other: R) -> Self
     {
-        let other = other.into();
-
-        if N >= into_usize(other) {
-            let bit = Z::one() << (other - Z::one());
+        if let Ok(other) = other.try_into()
+        && N >= other
+        {
+            let bit = Z::one() << (other - 1);
             let intersect = *self & bit;
             Bitset(*self - intersect)
         }
@@ -394,7 +394,7 @@ impl<Z, R, const N: usize> ops::Sub<R> for Bitset<N,Z>
     }
 }
 impl<Z, R, const N: usize> ops::SubAssign<R> for Bitset<N,Z>
-    where Z: PosInt, R: Into<Z>,
+    where Z: PosInt, R: TryInto<usize>,
 {
     /// Remove an integer `other` from the set. Does nothing if `other` is not in the range `1..=N`.
     fn sub_assign(&mut self, other: R) {
