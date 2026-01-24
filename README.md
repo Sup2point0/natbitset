@@ -2,7 +2,7 @@
 
 <div align="center">
 
-  [docs](https://docs.rs/natbitset/latest/natbitset) • [crates.io](https://crates.io/crates/natbitset) • [changelog](CHANGELOG.md)
+  [docs](https://docs.rs/natbitset/latest/natbitset) · [crates.io](https://crates.io/crates/natbitset) · [changelog](CHANGELOG.md)
 
 </div>
 
