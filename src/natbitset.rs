@@ -140,7 +140,25 @@ impl<T> PosInt for T where T:
 /// bitset -= 1;
 /// assert_eq!(bitset, byteset![2,3]);
 /// ```
-#[derive(Copy, Clone, PartialEq, Eq, Default, Debug)]
+/// 
+/// If you prefer explicit named methods as with `HashSet`, these are all available:
+/// 
+/// ```rust
+/// # use natbitset::*;
+/// let mut left = byteset![1,2,3];
+/// let mut right = byteset![3,4,5];
+/// 
+/// assert_eq!(left.union(right),        byteset![1,2,3,4,5]);
+/// assert_eq!(left.intersection(right), byteset![3]);
+/// assert_eq!(left.difference(right),   byteset![1,2]);
+/// 
+/// left.insert(4);
+/// assert_eq!(left, byetset![1,2,3,4]);
+/// 
+/// right.remove(5);
+/// assert_eq!(right, byteset![3,4]);
+/// ```
+#[derive(Copy, Clone, PartialEq, Eq, Default)]
 pub struct Bitset<const N: usize, Z = u8>(
     /// The underlying integer used to represent the set. When written in binary, each bit represents whether a number is present in the set (`1` if present, `0` if not).
     /// 
@@ -405,21 +423,6 @@ impl<Z, R, const N: usize> ops::SubAssign<R> for Bitset<N,Z>
 // == QUERY METHODS == //
 impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 {
-    /// Is the set empty?
-    pub fn is_empty(&self) -> bool {
-        **self == Z::zero()
-    }
-
-    /// Does the set contain only 1 element?
-    pub fn is_single(&self) -> bool {
-        self.len() == 1
-    }
-
-    /// Is the set full? (i.e. it contains every integer in `1..=N`)
-    pub fn is_full(&self) -> bool {
-        *self == Self::all()
-    }
-
     /// How many integers are in the set?
     pub fn len(&self) -> usize
     {
@@ -437,6 +440,96 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         }
 
         out
+    }
+
+    pub fn contains<R>(self, value: R) -> bool
+        where R: TryInto<usize>
+    {
+        if let Ok(val) = value.try_into() {
+            self.iter().any(|n| n == val)
+        }
+        else {
+            false
+        }
+    }
+
+    pub fn insert(&mut self, int: impl TryInto<usize>) -> bool
+    {
+        let before = *self;
+        *self += int;
+
+        *self != before
+    }
+
+    pub fn try_insert<R>(&mut self, int: R) -> Result<bool, R::Error>
+        where R: TryInto<usize>
+    {
+        let n = int.try_into()?;
+
+        let before = *self;
+
+        if N >= n {
+            let bit = Z::one() << (n - 1);
+            **self |= bit
+        }
+
+        Ok(*self != before)
+    }
+
+    pub fn remove(&mut self, int: impl TryInto<usize>) -> bool
+    {
+        let before = *self;
+        *self -= int;
+
+        *self != before
+    }
+
+    pub fn try_remove<R>(&mut self, int: R) -> Result<bool, R::Error>
+        where R: TryInto<usize>
+    {
+        let n = int.try_into()?;
+
+        let before = *self;
+        let bits_before = *before;
+
+        if N >= n {
+            let bit = Z::one() << (n - 1);
+            let intersect = bits_before & bit;
+            **self = bits_before - intersect;
+        }
+
+        Ok(*self != before)
+    }
+
+    pub fn intersection(self, other: Self) -> Self {
+        self & other
+    }
+
+    pub fn union(self, other: Self) -> Self {
+        self | other
+    }
+
+    pub fn difference(self, other: Self) -> Self {
+        self / other
+    }
+}
+
+// == QUERY METHODS == //
+impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
+{
+    /// Is the set empty?
+    pub fn is_empty(&self) -> bool {
+        **self == Z::zero()
+    }
+
+    /// Does the set contain only 1 element?
+    pub fn is_single(&self) -> bool {
+        self.len() == 1
+    }
+
+    /// Is the set full? (i.e. it contains every integer in `1..=N`)
+    pub fn is_full(&self) -> bool {
+        *self == Self::all()
     }
 
     /// Get the integers present in the set.
