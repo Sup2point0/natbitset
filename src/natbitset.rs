@@ -4,6 +4,7 @@ use std::collections::HashSet;
 use num_traits as nums;
 
 
+/// Any integer type, such as `i32`, `usize`, `isize`.
 pub trait AnyInt:
     nums::PrimInt
     + nums::NumAssign
@@ -16,6 +17,7 @@ impl<T> AnyInt for T where T:
     + iter::Sum
 {}
 
+/// A positive integer type, such as `u8`, `u16`, `usize`.
 pub trait PosInt:
     nums::PrimInt
     + nums::Unsigned
@@ -39,9 +41,9 @@ impl<T> PosInt for T where T:
 {}
 
 
-/// A set of bitflags representing positive integers in the range `1..=N`.
+/// A set representing positive integers in the range `1..=N`.
 /// 
-/// For the rationale behind how this struct works, please visit the [crate root](crate#rationale).
+/// You can treat this as a more memory-efficient `HashSet<usize>`. For the rationale behind how this struct works, please visit the [crate root](crate#rationale).
 /// 
 /// # Type Parameters
 /// 
@@ -60,7 +62,7 @@ impl<T> PosInt for T where T:
 /// 
 /// # Usage
 /// 
-/// `Bitset` is designed to be as ergonomic as possible. It does everything a `HashSet<usize>` could, while feeling like a `0b_xxxx_xxxx` bitflag integer.
+/// `Bitset` is designed to be as ergonomic as possible. It does everything a `HashSet<usize>` could, while implementing bitwise operations to make syntax super lightweight.
 /// 
 /// ## Instantiation
 /// 
@@ -123,7 +125,7 @@ impl<T> PosInt for T where T:
 /// let left = byteset![1,2,3];
 /// let right = byteset![3,4,5];
 /// 
-/// assert_eq!(left | right, byteset![1;5]);
+/// assert_eq!(left | right, byteset![1,2,3,4,5]);
 /// assert_eq!(left & right, byteset![3]);
 /// assert_eq!(left / right, byteset![1,2]);
 /// ```
@@ -411,6 +413,8 @@ impl<Z, R, const N: usize> ops::Add<R> for Bitset<N,Z>
     type Output = Self;
 
     /// Add an integer `other` to the set. Does nothing if `other` is not in the range `1..=N`.
+    /// 
+    /// If you wish to be notified when an insertion fails, use [`insert`] or [`try_insert`] (but note these are out-of-place).
     fn add(self, other: R) -> Self
     {
         if let Ok(other) = other.try_into()
@@ -428,6 +432,8 @@ impl<Z, R, const N: usize> ops::AddAssign<R> for Bitset<N,Z>
     where Z: PosInt, R: TryInto<usize>,
 {
     /// Add an integer `other` to the set. Does nothing if `other` is not in the range `1..=N`.
+    /// 
+    /// If you wish to be notified when an insertion fails, use [`insert`] or [`try_insert`].
     fn add_assign(&mut self, other: R) {
         *self = *self + other;
     }
@@ -439,6 +445,8 @@ impl<Z, R, const N: usize> ops::Sub<R> for Bitset<N,Z>
     type Output = Self;
 
     /// Remove an integer `other` from the set. Does nothing if `other` is not in the range `1..=N`.
+    /// 
+    /// If you wish to be notified when a removal fails, use [`remove`] or [`try_remove`] (but note these are out-of-place).
     fn sub(self, other: R) -> Self
     {
         if let Ok(other) = other.try_into()
@@ -457,28 +465,30 @@ impl<Z, R, const N: usize> ops::SubAssign<R> for Bitset<N,Z>
     where Z: PosInt, R: TryInto<usize>,
 {
     /// Remove an integer `other` from the set. Does nothing if `other` is not in the range `1..=N`.
+    /// 
+    /// If you wish to be notified when a removal fails, use [`remove`] or [`try_remove`].
     fn sub_assign(&mut self, other: R) {
         *self = *self - other;
     }
 }
 
-// == QUERY METHODS == //
+// == SET METHODS == //
 impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 {
     /// How many integers are in the set?
-    pub fn len(&self) -> usize
+    pub fn len(self) -> usize
     {
         let mut out = 0;
-        let mut val = **self;
-        let mut power = Z::one() << (N-1);
+        let mut residue = *self;
+        let mut power_of_2 = Z::one() << (N-1);
 
         for _ in (0..N).rev() {
-            if val >= power {
-                val -= power;
+            if residue >= power_of_2 {
+                residue -= power_of_2;
                 out += 1;
             }
             
-            power >>= Z::one();
+            power_of_2 >>= Z::one();
         }
 
         out
@@ -560,18 +570,18 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 {
     /// Is the set empty?
-    pub fn is_empty(&self) -> bool {
-        **self == Z::zero()
+    pub fn is_empty(self) -> bool {
+        *self == Z::zero()
     }
 
     /// Does the set contain only 1 element?
-    pub fn is_single(&self) -> bool {
+    pub fn is_single(self) -> bool {
         self.len() == 1
     }
 
     /// Is the set full? (i.e. it contains every integer in `1..=N`)
-    pub fn is_full(&self) -> bool {
-        *self == Self::all()
+    pub fn is_full(self) -> bool {
+        self == Self::all()
     }
 
     /// Get the integers present in the set.
@@ -587,22 +597,34 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
     /// 
     /// assert_eq!(nums, HashSet::from([1,3,7]));
     /// ```
-    pub fn members(&self) -> HashSet<usize>
+    pub fn members(self) -> HashSet<usize>
     {
         let mut out = HashSet::new();
-        let mut val = **self;
-        let mut power = Z::one() << (N-1);
+        let mut residue = *self;
+        let mut power_of_2 = Z::one() << (N-1);
 
         for i in (1..=N).rev() {
-            if val >= power {
-                val -= power;
+            if residue >= power_of_2 {
+                residue -= power_of_2;
                 out.insert(i);
             }
             
-            power >>= Z::one();
+            power_of_2 >>= Z::one();
         }
 
         out
+    }
+
+    pub fn members_asc(self) -> Vec<usize>
+    {
+        let mut out = self.members_desc();
+        out.reverse();
+        out
+    }
+
+    pub fn members_desc(self) -> Vec<usize>
+    {
+        self.into_iter().collect::<Vec<usize>>()
     }
 
     /// Get the maximum integer present in the set, or `0` if the set is empty.
@@ -612,13 +634,13 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
     /// assert_eq!(byteset![].max(),      None);
     /// assert_eq!(byteset![1,2,6].max(), Some(6));
     /// ```
-    pub fn max(&self) -> Option<usize>
+    pub fn max(self) -> Option<usize>
     {
         (0..N)
             .rev()
             .filter_map(|n| {
                 let pow = Z::one() << n;
-                let present = (**self & pow) > Z::zero();
+                let present = (*self & pow) > Z::zero();
                 present.then_some(n+1)
             })
             .next()
@@ -632,13 +654,15 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
     /// 
     /// ```rust
     /// # use natbitset::*;
-    /// assert_eq!( byteset![].single(),    None );
-    /// assert_eq!( byteset![1;8].single(), None );
-    /// assert_eq!( byteset![1].single(),   Some(1) );
-    /// assert_eq!( byteset![8].single(),   Some(8) );
+    /// assert_eq!( byteset![].only(),    None );
+    /// assert_eq!( byteset![1;8].only(), None );
+    /// assert_eq!( byteset![1].only(),   Some(1) );
+    /// assert_eq!( byteset![8].only(),   Some(8) );
     /// ```
-    pub fn single(&self) -> Option<usize> {
-        self.is_single().then_some(self.trailing_zeros() as usize + 1)
+    pub fn only(self) -> Option<usize>
+    {
+        self.is_single()
+            .then_some(self.trailing_zeros() as usize + 1)
     }
 }
 
