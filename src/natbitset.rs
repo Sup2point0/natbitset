@@ -416,7 +416,7 @@ impl<Z, R, const N: usize> ops::Add<R> for Bitset<N,Z>
 
     /// Add an integer `other` to the set. Does nothing if `other` is not in the range `1..=N`.
     /// 
-    /// If you wish to be notified when an insertion fails, use [`insert`] or [`try_insert`] (but note these are out-of-place).
+    /// If you wish to be notified when an insertion fails, use [`insert`](Self::insert) or [`try_insert`](Self::try_insert) (but note these are out-of-place).
     fn add(self, other: R) -> Self
     {
         if let Ok(other) = other.try_into()
@@ -435,7 +435,7 @@ impl<Z, R, const N: usize> ops::AddAssign<R> for Bitset<N,Z>
 {
     /// Add an integer `other` to the set. Does nothing if `other` is not in the range `1..=N`.
     /// 
-    /// If you wish to be notified when an insertion fails, use [`insert`] or [`try_insert`].
+    /// If you wish to be notified when an insertion fails, use [`insert`](Self::insert) or [`try_insert`](Self::try_insert).
     fn add_assign(&mut self, other: R) {
         *self = *self + other;
     }
@@ -448,7 +448,7 @@ impl<Z, R, const N: usize> ops::Sub<R> for Bitset<N,Z>
 
     /// Remove an integer `other` from the set. Does nothing if `other` is not in the range `1..=N`.
     /// 
-    /// If you wish to be notified when a removal fails, use [`remove`] or [`try_remove`] (but note these are out-of-place).
+    /// If you wish to be notified when a removal fails, use [`remove`](Self::remove) or [`try_remove`](Self::try_remove) (but note these are out-of-place).
     fn sub(self, other: R) -> Self
     {
         if let Ok(other) = other.try_into()
@@ -468,7 +468,7 @@ impl<Z, R, const N: usize> ops::SubAssign<R> for Bitset<N,Z>
 {
     /// Remove an integer `other` from the set. Does nothing if `other` is not in the range `1..=N`.
     /// 
-    /// If you wish to be notified when a removal fails, use [`remove`] or [`try_remove`].
+    /// If you wish to be notified when a removal fails, use [`remove`](Self::remove) or [`try_remove`](Self::try_remove).
     fn sub_assign(&mut self, other: R) {
         *self = *self - other;
     }
