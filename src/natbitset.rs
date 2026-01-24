@@ -162,6 +162,13 @@ impl<T> PosInt for T where T:
 /// right.remove(5);
 /// assert_eq!(right, byteset![3,4]);
 /// ```
+/// 
+/// These reflect the signatures of `HashSet`, and so in some cases require borrowing.
+/// 
+/// # Tips
+/// 
+/// - `Bitset` is **much** more lightweight than `HashSet` – it's only a single integer!
+///   - `Bitset` implements `Copy`, so you can pass it around without borrowing.
 #[derive(Copy, Clone, PartialEq, Eq, Default)]
 pub struct Bitset<const N: usize, Z = u8>(
     /// The underlying integer used to represent the set. When written in binary, each bit represents whether a number is present in the set (`1` if present, `0` if not).
@@ -496,10 +503,13 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         out
     }
 
-    pub fn contains<R>(self, value: R) -> bool
+    /// Does the set contain `int`?
+    /// 
+    /// Implemented for compatibility with `HashSet`. You may prefer [`has`](Self::has) which does not require borrowing `int`.
+    pub fn contains<R>(self, int: &R) -> bool
         where R: AnyInt
     {
-        if let Ok(val) = value.try_into() {
+        if let Ok(val) = (*int).try_into() {
             self.iter().any(|n| n == val)
         }
         else {
@@ -507,7 +517,9 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         }
     }
 
-    pub fn insert(&mut self, int: impl AnyInt) -> bool
+    /// Add `int` to the set. Returns whether the integer was newly inserted.
+    pub fn insert<R>(&mut self, int: R) -> bool
+        where R: AnyInt
     {
         let before = *self;
         *self += int;
@@ -515,6 +527,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         *self != before
     }
 
+    /// Try add `int` to the set by casting it into `usize`. Returns an `Ok` indicating whether the integer was newly inserted, or an `Err` if casting failed.
     pub fn try_insert<R>(&mut self, int: R) -> Result<bool, R::Error>
         where R: AnyInt
     {
@@ -530,18 +543,21 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         Ok(*self != before)
     }
 
-    pub fn remove(&mut self, int: impl AnyInt) -> bool
+    /// Remove `int` from the set. Returns whether the integer was present in the set.
+    pub fn remove<R>(&mut self, int: &R) -> bool
+        where R: AnyInt
     {
         let before = *self;
-        *self -= int;
+        *self -= *int;
 
         *self != before
     }
 
-    pub fn try_remove<R>(&mut self, int: R) -> Result<bool, R::Error>
+    /// Try remove `int` from the set by casting it into `usize`. Returns an `Ok` indicating whether the integer was present in the set, or an `Err` if casting failed.
+    pub fn try_remove<R>(&mut self, int: &R) -> Result<bool, R::Error>
         where R: AnyInt
     {
-        let n = int.try_into()?;
+        let n = (*int).try_into()?;
 
         let before = *self;
         let bits_before = *before;
@@ -555,20 +571,24 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         Ok(*self != before)
     }
 
+    /// Clear the set, removing all integers.
     pub fn clear(&mut self) {
         **self = Z::zero();
     }
 
-    pub fn intersection(self, other: Self) -> Self {
-        self & other
+    /// Return the intersection of the set with `other`.
+    pub fn intersection(self, other: &Self) -> Self {
+        self & *other
     }
 
-    pub fn union(self, other: Self) -> Self {
-        self | other
+    /// Return the union of the set with `other`.
+    pub fn union(self, other: &Self) -> Self {
+        self | *other
     }
 
-    pub fn difference(self, other: Self) -> Self {
-        self / other
+    /// Return the difference of the set with `other`, i.e. the integers that are present in `self` but not in `other`.
+    pub fn difference(self, other: &Self) -> Self {
+        self / *other
     }
 }
 
@@ -580,7 +600,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         *self == Z::zero()
     }
 
-    /// Does the set contain only 1 element?
+    /// Does the set contain only 1 integer?
     pub fn is_single(self) -> bool {
         self.len() == 1
     }
@@ -590,7 +610,23 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         self == Self::all()
     }
 
+    /// Does the set contain `int`?
+    /// 
+    /// Non-borrowed form of [`contains`](Self::contains).
+    pub fn has<R>(self, int: R) -> bool
+        where R: AnyInt
+    {
+        if let Ok(val) = int.try_into() {
+            self.iter().any(|n| n == val)
+        }
+        else {
+            false
+        }
+    }
+
     /// Get the integers present in the set.
+    /// 
+    /// If you only need to iterate over the integers lazily, prefer using [`.iter()`](Self::iter).
     /// 
     /// # Usage
     /// 
@@ -621,6 +657,12 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         out
     }
 
+    /// Get the integers present in the set, sorted in ascending order.
+    /// 
+    /// # Notes
+    /// 
+    /// - This is slightly more expensive than [`members_desc`](Self::members_desc) since it requires reversing the output of [`members_desc`](Self::members_desc).
+    ///   - This is a limitation of how the integers present in the set are determined from the bitflags.
     pub fn members_asc(self) -> Vec<usize>
     {
         let mut out = self.members_desc();
@@ -628,12 +670,13 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         out
     }
 
+    /// Get the integers present in the set, sorted in descending order.
     pub fn members_desc(self) -> Vec<usize>
     {
         self.into_iter().collect::<Vec<usize>>()
     }
 
-    /// Get the maximum integer present in the set, or `0` if the set is empty.
+    /// Get the maximum integer present in the set, or `None` if the set is empty.
     /// 
     /// ```rust
     /// # use natbitset::*;
@@ -652,7 +695,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
             .next()
     }
 
-    /// If the set contains only 1 element, return it in a `Some()`, else `None`.
+    /// If the set contains only 1 element, return it in a `Some()`, otherwise return `None`.
     /// 
     /// This is more convenient and efficient than `bitset.is_single().then_some(bitset.max().unwrap())`.
     /// 
