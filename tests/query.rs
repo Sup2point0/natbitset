@@ -52,10 +52,10 @@ use natbitset::*;
 
 #[test] fn single()
 {
-    assert_eq!( byteset![1].single(), Some(1) );
-    assert_eq!( byteset![8].single(), Some(8) );
+    assert_eq!( byteset![1].only(), Some(1) );
+    assert_eq!( byteset![8].only(), Some(8) );
 
-    assert_eq!( byteset![].single(), None );
-    assert_eq!( byteset![1,2].single(), None );
-    assert_eq!( byteset![1;8].single(), None );
+    assert_eq!( byteset![].only(), None );
+    assert_eq!( byteset![1,2].only(), None );
+    assert_eq!( byteset![1;8].only(), None );
 }
