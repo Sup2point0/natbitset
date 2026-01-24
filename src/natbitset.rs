@@ -284,6 +284,13 @@ impl<Z, const N: usize> ops::DerefMut for Bitset<N,Z> where Z: PosInt {
     }
 }
 
+impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt {
+    /// Get an iterator over the members of the set in 
+    fn iter(self) -> BitsetIterator<N,Z> {
+        self.into_iter()
+    }
+}
+
 impl<Z, const N: usize> IntoIterator for Bitset<N,Z> where Z: PosInt {
     type Item = usize;
     type IntoIter = BitsetIterator<N,Z>;
@@ -292,15 +299,28 @@ impl<Z, const N: usize> IntoIterator for Bitset<N,Z> where Z: PosInt {
     {
         BitsetIterator {
             i: N+1,
-            z: *self,
-            power_of_2: Z::one() << N,
+            residue: *self,
+            power_of_2: Z::one() << (N-1),
+        }
+    }
+}
+impl<'l, Z, const N: usize> IntoIterator for &'l Bitset<N,Z> where Z: PosInt {
+    type Item = usize;
+    type IntoIter = BitsetIterator<N,Z>;
+
+    fn into_iter(self) -> Self::IntoIter
+    {
+        BitsetIterator {
+            i: N+1,
+            residue: **self,
+            power_of_2: Z::one() << (N-1),
         }
     }
 }
 
 pub struct BitsetIterator<const N: usize, Z> where Z: PosInt {
     i: usize,
-    z: Z,
+    residue: Z,
     power_of_2: Z,
 }
 impl<Z, const N: usize> Iterator for BitsetIterator<N,Z> where Z: PosInt {
@@ -308,17 +328,39 @@ impl<Z, const N: usize> Iterator for BitsetIterator<N,Z> where Z: PosInt {
 
     fn next(&mut self) -> Option<Self::Item>
     {
+        let mut out = None;
+
         loop {
             self.i -= 1;
             if self.i == 0 { return None; }
 
+            if self.residue >= self.power_of_2 {
+                self.residue -= self.power_of_2;
+                out = Some(self.i);
+            }
+
             self.power_of_2 >>= Z::one();
 
-            if self.z >= self.power_of_2 {
-                self.z -= self.power_of_2;
-                return Some(self.i);
+            if out.is_some() { return out; }
+        }
+    }
+}
+
+impl<Z, const N: usize> fmt::Debug for Bitset<N,Z> where Z: PosInt {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Bitset {{")?;
+
+        let mut members = self.members_asc().into_iter();
+
+        if let Some(first) = members.next() {
+            write!(f, "{first:?}")?;
+
+            for n in members {
+                write!(f, ", {n:?}")?;
             }
         }
+
+        write!(f, "}}")
     }
 }
 
