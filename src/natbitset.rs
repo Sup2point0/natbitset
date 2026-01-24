@@ -6,13 +6,15 @@ use num_traits as nums;
 
 /// Any integer type, such as `i32`, `usize`, `isize`.
 pub trait AnyInt:
-    nums::PrimInt
+    TryInto<usize>
+    + nums::PrimInt
     + nums::NumAssign
     + iter::Sum
 {}
 
 impl<T> AnyInt for T where T:
-    nums::PrimInt
+    TryInto<usize>
+    + nums::PrimInt
     + nums::NumAssign
     + iter::Sum
 {}
@@ -155,7 +157,7 @@ impl<T> PosInt for T where T:
 /// assert_eq!(left.difference(right),   byteset![1,2]);
 /// 
 /// left.insert(4);
-/// assert_eq!(left, byetset![1,2,3,4]);
+/// assert_eq!(left, byteset![1,2,3,4]);
 /// 
 /// right.remove(5);
 /// assert_eq!(right, byteset![3,4]);
@@ -408,7 +410,7 @@ impl<Z, const N: usize> ops::DivAssign for Bitset<N,Z> where Z: PosInt {
 }
 
 impl<Z, R, const N: usize> ops::Add<R> for Bitset<N,Z>
-    where Z: PosInt, R: TryInto<usize>,
+    where Z: PosInt, R: AnyInt,
 {
     type Output = Self;
 
@@ -429,7 +431,7 @@ impl<Z, R, const N: usize> ops::Add<R> for Bitset<N,Z>
     }
 }
 impl<Z, R, const N: usize> ops::AddAssign<R> for Bitset<N,Z>
-    where Z: PosInt, R: TryInto<usize>,
+    where Z: PosInt, R: AnyInt,
 {
     /// Add an integer `other` to the set. Does nothing if `other` is not in the range `1..=N`.
     /// 
@@ -440,7 +442,7 @@ impl<Z, R, const N: usize> ops::AddAssign<R> for Bitset<N,Z>
 }
 
 impl<Z, R, const N: usize> ops::Sub<R> for Bitset<N,Z>
-    where Z: PosInt, R: TryInto<usize>,
+    where Z: PosInt, R: AnyInt,
 {
     type Output = Self;
 
@@ -462,7 +464,7 @@ impl<Z, R, const N: usize> ops::Sub<R> for Bitset<N,Z>
     }
 }
 impl<Z, R, const N: usize> ops::SubAssign<R> for Bitset<N,Z>
-    where Z: PosInt, R: TryInto<usize>,
+    where Z: PosInt, R: AnyInt,
 {
     /// Remove an integer `other` from the set. Does nothing if `other` is not in the range `1..=N`.
     /// 
@@ -495,7 +497,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
     }
 
     pub fn contains<R>(self, value: R) -> bool
-        where R: TryInto<usize>
+        where R: AnyInt
     {
         if let Ok(val) = value.try_into() {
             self.iter().any(|n| n == val)
@@ -505,7 +507,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         }
     }
 
-    pub fn insert(&mut self, int: impl TryInto<usize>) -> bool
+    pub fn insert(&mut self, int: impl AnyInt) -> bool
     {
         let before = *self;
         *self += int;
@@ -514,7 +516,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
     }
 
     pub fn try_insert<R>(&mut self, int: R) -> Result<bool, R::Error>
-        where R: TryInto<usize>
+        where R: AnyInt
     {
         let n = int.try_into()?;
 
@@ -528,7 +530,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         Ok(*self != before)
     }
 
-    pub fn remove(&mut self, int: impl TryInto<usize>) -> bool
+    pub fn remove(&mut self, int: impl AnyInt) -> bool
     {
         let before = *self;
         *self -= int;
@@ -537,7 +539,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
     }
 
     pub fn try_remove<R>(&mut self, int: R) -> Result<bool, R::Error>
-        where R: TryInto<usize>
+        where R: AnyInt
     {
         let n = int.try_into()?;
 
@@ -551,6 +553,10 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         }
 
         Ok(*self != before)
+    }
+
+    pub fn clear(&mut self) {
+        **self = Z::zero();
     }
 
     pub fn intersection(self, other: Self) -> Self {
