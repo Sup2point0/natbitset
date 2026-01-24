@@ -1,14 +1,17 @@
 [package]
-name = "natbitset"
-version = "0.1.0"
+name    = "natbitset"
+version = "0.2.0"
 authors = ["Sup#2.0"]
 edition = "2024"
 
-description = "A super-lightweight bitset implementation for positive integers."
-repository = "https://github.com/Sup2point0/natbitset"
-readme = "src/readme.md"
-documentation = "https://docs.rs/natbitset/latest"
-license = "MIT"
+description   = "A lightweight set implementation for consecutive natural numbers"
+repository    = "https://github.com/Sup2point0/natbitset"
+readme        = "src/readme.md"
+documentation = "https://docs.rs/natbitset/latest/natbitset"
+license       = "MIT"
 
 [dependencies]
 num-traits = "0.2.19"
+
+[dev-dependencies]
+itertools = "0.14.0"

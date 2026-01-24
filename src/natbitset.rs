@@ -43,9 +43,9 @@ impl<T> PosInt for T where T:
 {}
 
 
-/// A set representing positive integers in the range `1..=N`.
+/// An unordered set representing integers in the range `1..=N`.
 /// 
-/// You can treat this as a more memory-efficient `HashSet<usize>`. For the rationale behind how this struct works, please visit the [crate root](crate#rationale).
+/// You can treat this as a more memory-efficient `HashSet<usize>` specialised for consecutive natural numbers starting from 1. For the rationale behind how this struct works, please visit the [crate root](crate#rationale).
 /// 
 /// # Type Parameters
 /// 
