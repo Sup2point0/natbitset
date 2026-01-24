@@ -96,7 +96,9 @@ let bitset = Bitset::<9, u16>::from([1, 2, 4]);
 > [!Warning]
 > These benchmarks are purely illustrative – results will of course vary hugely depending on environment, background processes, etc. Please use them only as a reference to the differences in magnitude of performance.
 
-| operation     | N     | bitset | hashset | unit | description |
-| :------------ | :---- | :----- | :------ | :--- | :---------- |
-| construction  | 9     | ~100   | ~100000 | ns   | Constructing a set with members `1..=N` using `FromIterator` |
-|               | 65536 | ~10    | ~1000   | μs   |
+| operation     | N     | bitset | hashset  | unit | description |
+| :------------ | :---- | :----- | :------- | :--- | :---------- |
+| construction  | 9     | ~100   | ~100,000 | ps   | Constructing a set with members `1..=N` using `FromIterator` |
+|               | 65536 | ~10    | ~1,000   | μs   |
+| intersection  | 3     | ~100   | ~100,000 | ps   | Intersecting 2 sets of size `N` |
+|               | 42069 | ~**100 ps** | ~1 ms    |
