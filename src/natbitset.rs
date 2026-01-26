@@ -186,6 +186,7 @@ pub struct Bitset<const N: usize, Z = u8>(
     where Z: PosInt;
 
 // == CONSTRUCTORS == //
+/// Constructor methods.
 impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 {
     /// Construct a set with no bits enabled.
@@ -261,7 +262,7 @@ impl<Z, T, const N: usize> FromIterator<T> for Bitset<N,Z>
 /// let bitset = byteset![1,2,4];
 /// assert_eq!(*bitset, 0b_1011);
 /// 
-/// // provide bounds (inclusive) inclusive of range
+/// // provide bounds of inclusive range
 /// let bitset = byteset![3; 7];
 /// assert_eq!(*bitset, 0b_0111_1100);
 /// ```
@@ -523,6 +524,7 @@ impl<Z, R, const N: usize> ops::SubAssign<R> for Bitset<N,Z>
 }
 
 // == SET METHODS == //
+/// Methods following the same signature as `HashSet<>`.
 impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 {
     /// How many integers are in the set?
@@ -658,6 +660,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 }
 
 // == QUERY METHODS == //
+/// Specialised methods for querying the set.
 impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 {
     /// Is the set empty?
@@ -768,7 +771,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 
     /// If the set contains only 1 element, return it in a `Some()`, otherwise return `None`.
     /// 
-    /// This is more convenient and efficient than `bitset.is_single().then_some(bitset.max().unwrap())`.
+    /// This is more convenient and efficient than `bitset.is_single().then_some(bitset.maximum().unwrap())`, for instance.
     /// 
     /// # Usage
     /// 
@@ -787,10 +790,11 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 }
 
 // == MUTATING METHODS == //
+/// Specialised methods for mutating the set.
 impl<Z, const N: usize> Bitset<N,Z>
     where Z: PosInt + fmt::Debug
 {
-    /// Intersect `self` with `other`, returning an `Err` if the intersection is empty.
+    /// Intersect `self` with `other`. If the resultant intersection is empty, return an `Err`, leaving `self` unchanged.
     pub fn intersect_nonempty(&mut self, other: impl Into<Self>) -> Result<(), String>
     {
         let other = other.into();
