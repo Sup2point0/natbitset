@@ -1,6 +1,17 @@
 # Changelog
 
 
+## v0.3.0
+
+### Breaking
+- Change `HashSet`-isomorphic methods to accept borrowed instead of owned arguments
+  - This makes `Bitset` more compatible with `Hashset` for migrations
+
+### New
+- `Bitset` derives `Hash`
+- `has()` method (non-borrowed form of `contains()`)
+
+
 ## v0.2.0
 
 ### Breaking
