@@ -169,7 +169,7 @@ impl<T> PosInt for T where T:
 /// 
 /// - `Bitset` is **much** more lightweight than `HashSet` – it's only a single integer!
 ///   - `Bitset` implements `Copy`, so you can pass it around without borrowing.
-#[derive(Copy, Clone, PartialEq, Eq, Default)]
+#[derive(Copy, Clone, Hash, PartialEq, Eq, Default)]
 pub struct Bitset<const N: usize, Z = u8>(
     /// The underlying integer used to represent the set. When written in binary, each bit represents whether a number is present in the set (`1` if present, `0` if not).
     /// 

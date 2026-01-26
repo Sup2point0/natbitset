@@ -78,9 +78,8 @@ fn intersection(c: &mut Criterion)
 
     group!("intersect - small ", c =>
         " HashSet[3].intersection()" => ls.intersection(&rs).collect::<HashSet<_>>(),
-        " Bitset[3].intersection(&)" => lb.intersection(&rb),
-        " Bitset[3].intersection()"  => lb.intersection(rb),
-        " Bitset[3] &"        => lb & rb,
+        " Bitset[3].intersection()"  => lb.intersection(&rb),
+        " Bitset[3] &"               => lb & rb,
     );
 
     let ls = (1..=42069).collect::<HashSet<_>>();
@@ -91,8 +90,7 @@ fn intersection(c: &mut Criterion)
 
     group!("intersect - large ", c =>
         " HashSet[42069].intersection()" => ls.intersection(&rs).collect::<HashSet<_>>(),
-        " Bitset[42069].intersection(&)" => lb.intersection(&rb),
-        " Bitset[42069].intersection()"  => lb.intersection(rb),
-        " Bitset[42069] &"        => lb & rb,
+        " Bitset[42069].intersection()"  => lb.intersection(&rb),
+        " Bitset[42069] &"               => lb & rb,
     );
 }
