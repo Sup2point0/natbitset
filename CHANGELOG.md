@@ -1,11 +1,23 @@
 # Changelog
 
 
+## v0.4.0
+
+### Breaking
+- `max()` renamed to `maximum()`
+  - This is to avoid ambiguity with `self.max(other)` from `PartialOrd`.
+
+### New
+- `Bitset` implements `PartialOrd` for checking subset relation
+- `minimum()` method (opposite of `maximum()`)
+- `is_subset()`, `is_superset()` methods from `HashSet`
+
+
 ## v0.3.0
 
 ### Breaking
 - Change `HashSet`-isomorphic methods to accept borrowed instead of owned arguments
-  - This makes `Bitset` more compatible with `Hashset` for migrations
+  - This makes `Bitset` more compatible with `Hashset` for migrations.
 
 ### New
 - `Bitset` derives `Hash`
