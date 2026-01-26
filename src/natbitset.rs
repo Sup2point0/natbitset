@@ -676,23 +676,29 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         self.into_iter().collect::<Vec<usize>>()
     }
 
+    /// Get the minimum integer present in the set, or `None` if the set is empty.
+    /// 
+    /// ```rust
+    /// # use natbitset::*;
+    /// assert_eq!(byteset![].minimum(),      None);
+    /// assert_eq!(byteset![1,2,6].minimum(), Some(1));
+    /// ```
+    pub fn minimum(self) -> Option<usize>
+    {
+        self.iter().min()
+    }
+
     /// Get the maximum integer present in the set, or `None` if the set is empty.
     /// 
     /// ```rust
     /// # use natbitset::*;
-    /// assert_eq!(byteset![].max(),      None);
-    /// assert_eq!(byteset![1,2,6].max(), Some(6));
+    /// assert_eq!(byteset![].maximum(),      None);
+    /// assert_eq!(byteset![1,2,6].maximum(), Some(6));
     /// ```
-    pub fn max(self) -> Option<usize>
+    pub fn maximum(self) -> Option<usize>
     {
-        (0..N)
-            .rev()
-            .filter_map(|n| {
-                let pow = Z::one() << n;
-                let present = (*self & pow) > Z::zero();
-                present.then_some(n+1)
-            })
-            .next()
+        /* NOTE: `.iter()` returns members in decreasing order */
+        self.iter().next()
     }
 
     /// If the set contains only 1 element, return it in a `Some()`, otherwise return `None`.

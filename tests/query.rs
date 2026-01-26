@@ -48,13 +48,13 @@ use natbitset::*;
     assert_eq!( byteset![1;8].members(), (1..=8).rev().collect() );
 }
 
-#[test] fn max()
+#[test] fn maximum()
 {
-    assert_eq!( byteset![].max(), None );
-    assert_eq!( byteset![1,2].max(), Some(2) );
-    assert_eq!( byteset![1,2,4].max(), Some(4) );
-    assert_eq!( byteset![1,2,4,7].max(), Some(7) );
-    assert_eq!( byteset![1,2,4,7,8].max(), Some(8) );
+    assert_eq!( byteset![].maximum(), None );
+    assert_eq!( byteset![1,2].maximum(), Some(2) );
+    assert_eq!( byteset![1,2,4].maximum(), Some(4) );
+    assert_eq!( byteset![1,2,4,7].maximum(), Some(7) );
+    assert_eq!( byteset![1,2,4,7,8].maximum(), Some(8) );
 }
 
 #[test] fn single()
