@@ -152,14 +152,14 @@ impl<T> PosInt for T where T:
 /// let mut left = byteset![1,2,3];
 /// let mut right = byteset![3,4,5];
 /// 
-/// assert_eq!(left.union(right),        byteset![1,2,3,4,5]);
-/// assert_eq!(left.intersection(right), byteset![3]);
-/// assert_eq!(left.difference(right),   byteset![1,2]);
+/// assert_eq!(left.union(&right),        byteset![1,2,3,4,5]);
+/// assert_eq!(left.intersection(&right), byteset![3]);
+/// assert_eq!(left.difference(&right),   byteset![1,2]);
 /// 
 /// left.insert(4);
 /// assert_eq!(left, byteset![1,2,3,4]);
 /// 
-/// right.remove(5);
+/// right.remove(&5);
 /// assert_eq!(right, byteset![3,4]);
 /// ```
 /// 
