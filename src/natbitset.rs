@@ -296,7 +296,7 @@ impl<Z, const N: usize> ops::DerefMut for Bitset<N,Z> where Z: PosInt {
 }
 
 impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt {
-    /// Get an iterator over the members of the set in 
+    /// Get an iterator over the elements of the set, in descending order.
     fn iter(self) -> BitsetIterator<N,Z> {
         self.into_iter()
     }
@@ -306,6 +306,7 @@ impl<Z, const N: usize> IntoIterator for Bitset<N,Z> where Z: PosInt {
     type Item = usize;
     type IntoIter = BitsetIterator<N,Z>;
 
+    /// Get an iterator over the elements of the set, in descending order.
     fn into_iter(self) -> Self::IntoIter
     {
         BitsetIterator {
@@ -319,6 +320,7 @@ impl<'l, Z, const N: usize> IntoIterator for &'l Bitset<N,Z> where Z: PosInt {
     type Item = usize;
     type IntoIter = BitsetIterator<N,Z>;
 
+    /// Get an iterator over the elements of the set, in descending order.
     fn into_iter(self) -> Self::IntoIter
     {
         BitsetIterator {
@@ -357,6 +359,30 @@ impl<Z, const N: usize> Iterator for BitsetIterator<N,Z> where Z: PosInt {
     }
 }
 
+impl<Z, const N: usize> PartialOrd for Bitset<N,Z> where Z: PosInt {
+    /// Checks for a subset relation between `self` and `other`.
+    /// 
+    /// `self <= other == true` if `self` is a subset of `other`, i.e. all elements of `self` are also elements of `other`.
+    /// 
+    /// `self < other == true` if `self` is a *strict* subset of `other`, i.e. `self != other`.
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        let s = *self;
+        let r = *other;
+
+        if s == r {
+            return Some(cmp::Ordering::Equal)
+        }
+        else if *(s / r) == Z::zero() {
+            return Some(cmp::Ordering::Less)
+        }
+        else if *(r / s) == Z::zero() {
+            return Some(cmp::Ordering::Greater)
+        }
+        
+        None
+    }
+}
+
 impl<Z, const N: usize> fmt::Debug for Bitset<N,Z> where Z: PosInt {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Bitset {{")?;
@@ -379,11 +405,13 @@ impl<Z, const N: usize> fmt::Debug for Bitset<N,Z> where Z: PosInt {
 impl<Z, const N: usize> ops::BitOr for Bitset<N,Z> where Z: PosInt {
     type Output = Self;
 
+    /// Return the union of `self` and `other`, i.e. the combined integers of both sets.
     fn bitor(self, other: Self) -> Self {
         Bitset(*self | *other)
     }
 }
 impl<Z, const N: usize> ops::BitOrAssign for Bitset<N,Z> where Z: PosInt {
+    /// Union `self` with `other`.
     fn bitor_assign(&mut self, other: Self) {
         **self |= *other;
     }
@@ -392,11 +420,13 @@ impl<Z, const N: usize> ops::BitOrAssign for Bitset<N,Z> where Z: PosInt {
 impl<Z, const N: usize> ops::BitAnd for Bitset<N,Z> where Z: PosInt {
     type Output = Self;
 
+    /// Return the intersection of `self` and `other`, i.e. the integers that are members of both sets.
     fn bitand(self, other: Self) -> Self {
         Bitset(*self & *other)
     }
 }
 impl<Z, const N: usize> ops::BitAndAssign for Bitset<N,Z> where Z: PosInt {
+    /// Intersect `self` with `other`.
     fn bitand_assign(&mut self, other: Self) {
         **self &= *other;
     }
@@ -405,14 +435,25 @@ impl<Z, const N: usize> ops::BitAndAssign for Bitset<N,Z> where Z: PosInt {
 impl<Z, const N: usize> ops::Div for Bitset<N,Z> where Z: PosInt {
     type Output = Self;
 
+    /// Return the difference of `self` and `other`, i.e. the integers that are members of `self` but not `other`.
     fn div(self, other: Self) -> Self::Output {
         Bitset(*self - (*self & *other))
     }
 }
 impl<Z, const N: usize> ops::DivAssign for Bitset<N,Z> where Z: PosInt {
+    /// Remove the elements of `other` from `self`.
     fn div_assign(&mut self, other: Self) {
         let intersect = **self & *other;
         **self -= intersect;
+    }
+}
+
+impl<Z, const N: usize> ops::BitXor for Bitset<N,Z> where Z: PosInt {
+    type Output = Self;
+
+    /// Return the asymmetric difference of `self` and `other`, i.e. the integers that are members of either `self` or `other`, but not both.
+    fn bitxor(self, other: Self) -> Self::Output {
+        (self | other) / (self & other)
     }
 }
 
@@ -543,7 +584,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         Ok(*self != before)
     }
 
-    /// Remove `int` from the set. Returns whether the integer was present in the set.
+    /// Remove `int` from the set. Returns whether the integer was a member of the set.
     pub fn remove<R>(&mut self, int: &R) -> bool
         where R: AnyInt
     {
@@ -553,7 +594,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         *self != before
     }
 
-    /// Try remove `int` from the set by casting it into `usize`. Returns an `Ok` indicating whether the integer was present in the set, or an `Err` if casting failed.
+    /// Try remove `int` from the set by casting it into `usize`. Returns an `Ok` indicating whether the integer was a member of the set, or an `Err` if casting failed.
     pub fn try_remove<R>(&mut self, int: &R) -> Result<bool, R::Error>
         where R: AnyInt
     {
@@ -576,19 +617,43 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         **self = Z::zero();
     }
 
-    /// Return the intersection of the set with `other`.
-    pub fn intersection(self, other: &Self) -> Self {
-        self & *other
-    }
-
-    /// Return the union of the set with `other`.
+    /// Return the union of `self` and `other`, i.e. the combined integers of both sets.
     pub fn union(self, other: &Self) -> Self {
         self | *other
     }
 
-    /// Return the difference of the set with `other`, i.e. the integers that are present in `self` but not in `other`.
+    /// Return the intersection of `self` and `other`, i.e. the integers that are members of both sets.
+    pub fn intersection(self, other: &Self) -> Self {
+        self & *other
+    }
+
+    /// Return the difference of `self` and `other`, i.e. the integers that are members of `self` but not `other`.
     pub fn difference(self, other: &Self) -> Self {
         self / *other
+    }
+
+    /// Return the asymmetric difference of `self` and `other`, i.e. the integers that are members of either `self` or `other`, but not both.
+    pub fn symmetric_difference(self, other: &Self) -> Self {
+        self ^ *other
+    }
+
+    /// Do `self` and `other` have no elements in common? (i.e. is the intersection empty?)
+    pub fn is_disjoint(self, other: &Self) -> bool {
+        *(self & *other) == Z::zero()
+    }
+
+    /// Is `self` a subset of `other`?
+    /// 
+    /// You may wish to use `self <= other` if it's sufficiently unambiguous.
+    pub fn is_subset(self, other: &Self) -> bool {
+        self <= *other
+    }
+
+    /// Is `other` a subset of `self`?
+    /// 
+    /// You may wish to use `self >= other` if it's sufficiently unambiguous.
+    pub fn is_superset(self, other: &Self) -> bool {
+        self >= *other
     }
 }
 
@@ -624,7 +689,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         }
     }
 
-    /// Get the integers present in the set.
+    /// Get the integers in the set.
     /// 
     /// If you only need to iterate over the integers lazily, prefer using [`.iter()`](Self::iter).
     /// 
@@ -657,7 +722,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         out
     }
 
-    /// Get the integers present in the set, sorted in ascending order.
+    /// Get the integers in the set, sorted in ascending order.
     /// 
     /// # Notes
     /// 
@@ -670,7 +735,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         out
     }
 
-    /// Get the integers present in the set, sorted in descending order.
+    /// Get the integers in the set, sorted in descending order.
     pub fn members_desc(self) -> Vec<usize>
     {
         self.into_iter().collect::<Vec<usize>>()
