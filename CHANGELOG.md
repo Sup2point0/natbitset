@@ -1,6 +1,16 @@
 # Changelog
 
 
+## v0.4.1
+
+### New
+- `single()` method for constructing singleton set
+- `retain()` method from `HashSet` for filtering out elements
+
+### Fixes
+- `iter()` is public instead of private
+
+
 ## v0.4.0
 
 ### Breaking
@@ -9,8 +19,10 @@
 
 ### New
 - `Bitset` implements `PartialOrd` for checking subset relation
+- `Bitset` supports `bitset ^ bitset` for symmetric difference
+  - `symmetric_difference()` method from `HashSet`
 - `minimum()` method (opposite of `maximum()`)
-- `is_subset()`, `is_superset()` methods from `HashSet`
+- `is_subset()`, `is_superset()`, `is_disjoint()` methods from `HashSet`
 
 
 ## v0.3.0
