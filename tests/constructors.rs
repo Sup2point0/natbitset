@@ -1,7 +1,17 @@
 use natbitset::*;
 
 
-#[test] fn off()
+#[test] fn single()
+{
+    assert_eq!( *Bitset::<1>::single(1), 1 );
+    assert_eq!( *Bitset::<8>::single(1), 1 );
+}
+
+#[test] #[should_panic] fn single_negative() { Bitset::<1>::single(-1); }
+#[test] #[should_panic] fn single_zero() { Bitset::<1>::single(0); }
+#[test] #[should_panic] fn single_exceed() { Bitset::<1>::single(2); }
+
+#[test] fn none()
 {
     assert_eq!( *Bitset::<1>::none(), 0 );
     assert_eq!( *Bitset::<2>::none(), 0 );
@@ -9,7 +19,7 @@ use natbitset::*;
     assert_eq!( *Bitset::<8>::none(), 0 );
 }
 
-#[test] fn on()
+#[test] fn all()
 {
     assert_eq!( *Bitset::<1>::all(), 0b_1 );
     assert_eq!( *Bitset::<2>::all(), 0b_11 );

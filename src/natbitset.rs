@@ -189,6 +189,25 @@ pub struct Bitset<const N: usize, Z = u8>(
 /// Constructor methods.
 impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 {
+    /// Construct a set with a single integer `int`.
+    /// 
+    /// # Panics
+    /// 
+    /// Panics if `n` is not in the range `1..=N` or cannot be converted to a `usize`.
+    pub fn single(int: impl AnyInt + fmt::Debug) -> Self
+    {
+        let Ok(n) = int.try_into() else {
+            panic!("Error constructing a singleton `Bitset`: could not convert `{int:?}` to a `usize`")
+        };
+
+        if n < 1 || N < n {
+            panic!("Error constructing a singleton `Bitset`: received `{int:?}` which is outside of valid range `1..={N}`");
+        }
+
+        let z = Z::one() << (n - 1);
+        Bitset(z)
+    }
+
     /// Construct a set with no bits enabled.
     /// 
     /// # Usage
