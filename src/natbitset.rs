@@ -676,6 +676,28 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
     pub fn is_superset(self, other: &Self) -> bool {
         self >= *other
     }
+
+    /// Remove elements from `self` that do not fulfil `predicate`.
+    pub fn retain(&mut self, mut predicate: impl FnMut(usize) -> bool)
+    {
+        let mut res = Z::zero();
+        let mut residue = **self;
+        let mut power_of_2 = Z::one() << (N-1);
+
+        for i in (1..=N).rev() {
+            if residue >= power_of_2 {
+                residue -= power_of_2;
+
+                if predicate(i) {
+                    res += power_of_2;
+                }
+            }
+
+            power_of_2 >>= Z::one();
+        }
+
+        **self = res;
+    }
 }
 
 // == QUERY METHODS == //

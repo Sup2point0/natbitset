@@ -69,3 +69,18 @@ use natbitset::*;
 
     assert!( !byteset![1,2].is_disjoint(&byteset![2,3]) );
 }
+
+#[test] fn retain()
+{
+    let mut bitset = byteset![1;8];
+    bitset.retain(|n| true);
+    assert_eq!( bitset, byteset![1;8] );
+    
+    let mut bitset = byteset![1;8];
+    bitset.retain(|n| false);
+    assert_eq!( bitset, byteset![] );
+
+    let mut bitset = byteset![1;8];
+    bitset.retain(|n| n % 2 == 0);
+    assert_eq!( bitset, byteset![2,4,6,8] );
+}
