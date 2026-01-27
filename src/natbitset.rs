@@ -317,7 +317,7 @@ impl<Z, const N: usize> ops::DerefMut for Bitset<N,Z> where Z: PosInt {
 
 impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt {
     /// Get an iterator over the elements of the set, in descending order.
-    fn iter(self) -> BitsetIterator<N,Z> {
+    pub fn iter(self) -> BitsetIterator<N,Z> {
         self.into_iter()
     }
 }
