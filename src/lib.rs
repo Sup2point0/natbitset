@@ -30,8 +30,8 @@
 //! 
 //! See [`Bitset`](Bitset#usage) for guidance on how to use the struct.
 
-#[allow(dead_code)]
-#[allow(unused_parens)]
+#![allow(dead_code)]
+#![allow(unused_parens)]
 
 mod natbitset;
 pub use natbitset::{

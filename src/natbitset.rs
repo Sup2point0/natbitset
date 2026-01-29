@@ -260,11 +260,8 @@ impl<Z, T, const N: usize> FromIterator<T> for Bitset<N,Z>
 
         Self(
             iter.into_iter()
-                .filter_map(|t|
-                    (n >= t && t > zero).then(||
-                        Z::one() << into_usize(t - T::one())
-                    )
-                )
+                .filter(|t| n >= *t && *t > zero)
+                .map(|t| Z::one() << into_usize(t - T::one()))
                 .sum()
         )
     }
@@ -336,7 +333,7 @@ impl<Z, const N: usize> IntoIterator for Bitset<N,Z> where Z: PosInt {
         }
     }
 }
-impl<'l, Z, const N: usize> IntoIterator for &'l Bitset<N,Z> where Z: PosInt {
+impl<Z, const N: usize> IntoIterator for &Bitset<N,Z> where Z: PosInt {
     type Item = usize;
     type IntoIter = BitsetIterator<N,Z>;
 
@@ -855,9 +852,8 @@ impl<Z, const N: usize> Bitset<N,Z>
     /// Intersect `self` with `other`, panicking with debug output if the resultant intersection is empty.
     pub fn intersect_nonempty_panicking(&mut self, other: impl Into<Self>)
     {
-        match self.intersect_nonempty(other) {
-            Err(e) => panic!("{e}"),
-            Ok(()) => (),
+        if let Err(e) = self.intersect_nonempty(other) {
+            panic!("{e}");
         }
     }
 }
