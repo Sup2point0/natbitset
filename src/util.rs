@@ -9,6 +9,6 @@ macro_rules! boxerr {
                     format!($message)
                 )
             )
-        );
+        )
     };
 }
