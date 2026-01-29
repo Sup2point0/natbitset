@@ -1,46 +1,10 @@
 use std::*;
 use std::collections::HashSet;
+use std::error::Error;
 
 use num_traits as nums;
 
-
-/// Any integer type, such as `i32`, `usize`, `isize`.
-pub trait AnyInt:
-    TryInto<usize>
-    + nums::PrimInt
-    + nums::NumAssign
-    + iter::Sum
-{}
-
-impl<T> AnyInt for T where T:
-    TryInto<usize>
-    + nums::PrimInt
-    + nums::NumAssign
-    + iter::Sum
-{}
-
-/// A positive integer type, such as `u8`, `u16`, `usize`.
-pub trait PosInt:
-    nums::PrimInt
-    + nums::Unsigned
-    + nums::NumAssign
-    + ops::BitOr + ops::BitOrAssign
-    + ops::BitAnd + ops::BitAndAssign
-    + ops::Shl<Output = Self> + ops::ShlAssign
-    + ops::Shr<Output = Self> + ops::ShrAssign
-    + iter::Sum
-{}
-
-impl<T> PosInt for T where T:
-    nums::PrimInt
-    + nums::Unsigned
-    + nums::NumAssign
-    + ops::BitOr + ops::BitOrAssign
-    + ops::BitAnd + ops::BitAndAssign
-    + ops::Shl<Output = Self> + ops::ShlAssign
-    + ops::Shr<Output = Self> + ops::ShrAssign
-    + iter::Sum
-{}
+use crate::*;
 
 
 /// An unordered set representing integers in the range `1..=N`.
@@ -187,7 +151,7 @@ pub struct Bitset<const N: usize, Z = u8>(
 
 // == CONSTRUCTORS == //
 /// Constructor methods.
-impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
+impl<Z: PosInt, const N: usize> Bitset<N,Z>
 {
     /// Construct a set with a single integer `int`.
     /// 
@@ -239,8 +203,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
     }
 }
 
-impl<Z, T, const N: usize, const M: usize> From<[T; M]> for Bitset<N,Z>
-    where Z: PosInt, T: AnyInt
+impl<Z: PosInt, T: AnyInt, const N: usize, const M: usize> From<[T; M]> for Bitset<N,Z>
 {
     fn from(digits: [T; M]) -> Self {
         Self::from_iter(digits)
@@ -248,8 +211,7 @@ impl<Z, T, const N: usize, const M: usize> From<[T; M]> for Bitset<N,Z>
 }
 
 /* NOTE: Z != T because one is the incoming integer type (probably defaulted to `i32`) while the other is the underlying representation type that will be used by the `Bitset` =) */
-impl<Z, T, const N: usize> FromIterator<T> for Bitset<N,Z>
-    where Z: PosInt, T: AnyInt
+impl<Z: PosInt, T: AnyInt, const N: usize> FromIterator<T> for Bitset<N,Z>
 {
     /// Construct a `Bitset` from an iterator of integers, accepting only those in `1..=N` and ignoring others.
     fn from_iter<I>(iter: I) -> Self
@@ -298,7 +260,7 @@ macro_rules! byteset {
 }
 
 // == TRAITS == //
-impl<Z, const N: usize> ops::Deref for Bitset<N,Z> where Z: PosInt {
+impl<Z: PosInt, const N: usize> ops::Deref for Bitset<N,Z> {
     type Target = Z;
 
     fn deref(&self) -> &Self::Target {
@@ -306,20 +268,20 @@ impl<Z, const N: usize> ops::Deref for Bitset<N,Z> where Z: PosInt {
     }
 }
 
-impl<Z, const N: usize> ops::DerefMut for Bitset<N,Z> where Z: PosInt {
+impl<Z: PosInt, const N: usize> ops::DerefMut for Bitset<N,Z> {
     fn deref_mut(&mut self) -> &mut Z {
         &mut self.0
     }
 }
 
-impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt {
+impl<Z: PosInt, const N: usize> Bitset<N,Z> {
     /// Get an iterator over the elements of the set, in descending order.
     pub fn iter(self) -> BitsetIterator<N,Z> {
         self.into_iter()
     }
 }
 
-impl<Z, const N: usize> IntoIterator for Bitset<N,Z> where Z: PosInt {
+impl<Z: PosInt, const N: usize> IntoIterator for Bitset<N,Z> {
     type Item = usize;
     type IntoIter = BitsetIterator<N,Z>;
 
@@ -333,7 +295,7 @@ impl<Z, const N: usize> IntoIterator for Bitset<N,Z> where Z: PosInt {
         }
     }
 }
-impl<Z, const N: usize> IntoIterator for &Bitset<N,Z> where Z: PosInt {
+impl<Z: PosInt, const N: usize> IntoIterator for &Bitset<N,Z> {
     type Item = usize;
     type IntoIter = BitsetIterator<N,Z>;
 
@@ -353,7 +315,7 @@ pub struct BitsetIterator<const N: usize, Z> where Z: PosInt {
     residue: Z,
     power_of_2: Z,
 }
-impl<Z, const N: usize> Iterator for BitsetIterator<N,Z> where Z: PosInt {
+impl<Z: PosInt, const N: usize> Iterator for BitsetIterator<N,Z> {
     type Item = usize;
 
     fn next(&mut self) -> Option<Self::Item>
@@ -376,7 +338,7 @@ impl<Z, const N: usize> Iterator for BitsetIterator<N,Z> where Z: PosInt {
     }
 }
 
-impl<Z, const N: usize> PartialOrd for Bitset<N,Z> where Z: PosInt {
+impl<Z: PosInt, const N: usize> PartialOrd for Bitset<N,Z> {
     /// Checks for a subset relation between `self` and `other`.
     /// 
     /// `self <= other == true` if `self` is a subset of `other`, i.e. all elements of `self` are also elements of `other`.
@@ -400,7 +362,7 @@ impl<Z, const N: usize> PartialOrd for Bitset<N,Z> where Z: PosInt {
     }
 }
 
-impl<Z, const N: usize> fmt::Debug for Bitset<N,Z> where Z: PosInt {
+impl<Z: PosInt, const N: usize> fmt::Debug for Bitset<N,Z> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Bitset {{")?;
 
@@ -419,7 +381,7 @@ impl<Z, const N: usize> fmt::Debug for Bitset<N,Z> where Z: PosInt {
 }
 
 // == SET OPERATIONS == //
-impl<Z, const N: usize> ops::BitOr for Bitset<N,Z> where Z: PosInt {
+impl<Z: PosInt, const N: usize> ops::BitOr for Bitset<N,Z> {
     type Output = Self;
 
     /// Return the union of `self` and `other`, i.e. the combined integers of both sets.
@@ -427,14 +389,14 @@ impl<Z, const N: usize> ops::BitOr for Bitset<N,Z> where Z: PosInt {
         Bitset(*self | *other)
     }
 }
-impl<Z, const N: usize> ops::BitOrAssign for Bitset<N,Z> where Z: PosInt {
+impl<Z: PosInt, const N: usize> ops::BitOrAssign for Bitset<N,Z> {
     /// Union `self` with `other`.
     fn bitor_assign(&mut self, other: Self) {
         **self |= *other;
     }
 }
 
-impl<Z, const N: usize> ops::BitAnd for Bitset<N,Z> where Z: PosInt {
+impl<Z: PosInt, const N: usize> ops::BitAnd for Bitset<N,Z> {
     type Output = Self;
 
     /// Return the intersection of `self` and `other`, i.e. the integers that are members of both sets.
@@ -442,14 +404,14 @@ impl<Z, const N: usize> ops::BitAnd for Bitset<N,Z> where Z: PosInt {
         Bitset(*self & *other)
     }
 }
-impl<Z, const N: usize> ops::BitAndAssign for Bitset<N,Z> where Z: PosInt {
+impl<Z: PosInt, const N: usize> ops::BitAndAssign for Bitset<N,Z> {
     /// Intersect `self` with `other`.
     fn bitand_assign(&mut self, other: Self) {
         **self &= *other;
     }
 }
 
-impl<Z, const N: usize> ops::Div for Bitset<N,Z> where Z: PosInt {
+impl<Z: PosInt, const N: usize> ops::Div for Bitset<N,Z> {
     type Output = Self;
 
     /// Return the difference of `self` and `other`, i.e. the integers that are members of `self` but not `other`.
@@ -457,7 +419,7 @@ impl<Z, const N: usize> ops::Div for Bitset<N,Z> where Z: PosInt {
         Bitset(*self - (*self & *other))
     }
 }
-impl<Z, const N: usize> ops::DivAssign for Bitset<N,Z> where Z: PosInt {
+impl<Z: PosInt, const N: usize> ops::DivAssign for Bitset<N,Z> {
     /// Remove the elements of `other` from `self`.
     fn div_assign(&mut self, other: Self) {
         let intersect = **self & *other;
@@ -465,7 +427,7 @@ impl<Z, const N: usize> ops::DivAssign for Bitset<N,Z> where Z: PosInt {
     }
 }
 
-impl<Z, const N: usize> ops::BitXor for Bitset<N,Z> where Z: PosInt {
+impl<Z: PosInt, const N: usize> ops::BitXor for Bitset<N,Z> {
     type Output = Self;
 
     /// Return the asymmetric difference of `self` and `other`, i.e. the integers that are members of either `self` or `other`, but not both.
@@ -474,20 +436,19 @@ impl<Z, const N: usize> ops::BitXor for Bitset<N,Z> where Z: PosInt {
     }
 }
 
-impl<Z, R, const N: usize> ops::Add<R> for Bitset<N,Z>
-    where Z: PosInt, R: AnyInt,
+impl<Z: PosInt, R: AnyInt, const N: usize> ops::Add<R> for Bitset<N,Z>
 {
     type Output = Self;
 
-    /// Add an integer `other` to the set. Does nothing if `other` is not in the range `1..=N`.
+    /// Add `int` to the set. Does nothing if `int` is not in the range `1..=N`.
     /// 
     /// If you wish to be notified when an insertion fails, use [`insert`](Self::insert) or [`try_insert`](Self::try_insert) (but note these are out-of-place).
-    fn add(self, other: R) -> Self
+    fn add(self, int: R) -> Self
     {
-        if let Ok(other) = other.try_into()
-        && N >= other
+        if let Ok(int) = int.try_into()
+        && N >= int
         {
-            let bit = Z::one() << (other - 1);
+            let bit = Z::one() << (int - 1);
             Bitset(*self | bit)
         }
         else {
@@ -495,31 +456,31 @@ impl<Z, R, const N: usize> ops::Add<R> for Bitset<N,Z>
         }
     }
 }
-impl<Z, R, const N: usize> ops::AddAssign<R> for Bitset<N,Z>
-    where Z: PosInt, R: AnyInt,
+impl<Z: PosInt, R: AnyInt, const N: usize> ops::AddAssign<R> for Bitset<N,Z>
 {
-    /// Add an integer `other` to the set. Does nothing if `other` is not in the range `1..=N`.
+    /// Add `int` to the set. Does nothing if `int` is not in the range `1..=N`.
     /// 
     /// If you wish to be notified when an insertion fails, use [`insert`](Self::insert) or [`try_insert`](Self::try_insert).
-    fn add_assign(&mut self, other: R) {
-        *self = *self + other;
+    fn add_assign(&mut self, int: R) {
+        *self = *self + int;
     }
 }
 
-impl<Z, R, const N: usize> ops::Sub<R> for Bitset<N,Z>
-    where Z: PosInt, R: AnyInt,
+impl<Z: PosInt, R: AnyInt, const N: usize> ops::Sub<R> for Bitset<N,Z>
 {
     type Output = Self;
 
-    /// Remove an integer `other` from the set. Does nothing if `other` is not in the range `1..=N`.
+    /// Remove `int` from the set. Does nothing if `int` is not in the range `1..=N`.
     /// 
     /// If you wish to be notified when a removal fails, use [`remove`](Self::remove) or [`try_remove`](Self::try_remove) (but note these are out-of-place).
-    fn sub(self, other: R) -> Self
+    /// 
+    /// If you wish to be notified when a removal leaves the set empty, use [`remove_nonempty`](Self::remove_nonempty) or [`remove_nonempty_panicking`](Self::remove_nonempty_panicking).
+    fn sub(self, int: R) -> Self
     {
-        if let Ok(other) = other.try_into()
-        && N >= other
+        if let Ok(int) = int.try_into()
+        && N >= int
         {
-            let bit = Z::one() << (other - 1);
+            let bit = Z::one() << (int - 1);
             let intersect = *self & bit;
             Bitset(*self - intersect)
         }
@@ -528,8 +489,7 @@ impl<Z, R, const N: usize> ops::Sub<R> for Bitset<N,Z>
         }
     }
 }
-impl<Z, R, const N: usize> ops::SubAssign<R> for Bitset<N,Z>
-    where Z: PosInt, R: AnyInt,
+impl<Z: PosInt, R: AnyInt, const N: usize> ops::SubAssign<R> for Bitset<N,Z>
 {
     /// Remove an integer `other` from the set. Does nothing if `other` is not in the range `1..=N`.
     /// 
@@ -541,7 +501,7 @@ impl<Z, R, const N: usize> ops::SubAssign<R> for Bitset<N,Z>
 
 // == SET METHODS == //
 /// Methods following the same signature as `HashSet<>`.
-impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
+impl<Z: PosInt, const N: usize> Bitset<N,Z>
 {
     /// How many integers are in the set?
     pub fn len(self) -> usize
@@ -674,7 +634,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
         self >= *other
     }
 
-    /// Remove elements from `self` that do not fulfil `predicate`.
+    /// (in-place) Filter `self` to keep only elements that fulfil `predicate`, i.e. remove elements for which `predicate(element) == false`.
     pub fn retain(&mut self, mut predicate: impl FnMut(usize) -> bool)
     {
         let mut res = Z::zero();
@@ -699,7 +659,7 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 
 // == QUERY METHODS == //
 /// Specialised methods for querying the set.
-impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
+impl<Z: PosInt, const N: usize> Bitset<N,Z>
 {
     /// Is the set empty?
     pub fn is_empty(self) -> bool {
@@ -829,8 +789,8 @@ impl<Z, const N: usize> Bitset<N,Z> where Z: PosInt
 
 // == MUTATING METHODS == //
 /// Specialised methods for mutating the set.
-impl<Z, const N: usize> Bitset<N,Z>
-    where Z: PosInt + fmt::Debug
+impl<Z: PosInt, const N: usize> Bitset<N,Z>
+    where Z: fmt::Debug
 {
     /// Intersect `self` with `other`. If the resultant intersection is empty, return an `Err`, leaving `self` unchanged.
     pub fn intersect_nonempty(&mut self, other: impl Into<Self>) -> Result<(), String>
@@ -865,8 +825,7 @@ fn into_z<Z>(u: usize) -> Z
 }
 
 /// Cast an integer into a `usize`.
-fn into_usize<Z>(n: Z) -> usize
-    where Z: AnyInt
+fn into_usize<N: AnyInt>(n: N) -> usize
 {
-    nums::cast::<Z, usize>(n).unwrap()
+    nums::cast::<N, usize>(n).unwrap()
 }

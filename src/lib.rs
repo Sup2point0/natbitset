@@ -37,4 +37,8 @@ mod natbitset;
 pub use natbitset::{
     Bitset,
 };
+
+mod traits; pub use traits::*;
 mod errors; pub use errors::*;
+
+pub(crate) mod util;
