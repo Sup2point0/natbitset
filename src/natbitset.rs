@@ -792,8 +792,10 @@ impl<Z: PosInt, const N: usize> Bitset<N,Z>
 impl<Z: PosInt, const N: usize> Bitset<N,Z>
     where Z: fmt::Debug
 {
-    /// Intersect `self` with `other`. If the resultant intersection is empty, return an `Err`, leaving `self` unchanged.
-    pub fn intersect_nonempty(&mut self, other: impl Into<Self>) -> Result<(), String>
+    /// Intersect `self` with `other` (in-place). If `self` becomes empty as a result, return an `Err`, leaving `self` unchanged.
+    /// 
+    /// See [`intersection`](Self::intersection) for more info.
+    pub fn intersect_nonempty(&mut self, other: impl Into<Self>) -> Result<(), Box<dyn Error + 'static>>
     {
         let other = other.into();
         let intersect = *self & other;
@@ -807,19 +809,76 @@ impl<Z: PosInt, const N: usize> Bitset<N,Z>
         Ok(())
     }
 
-    /// Intersect `self` with `other`, panicking with debug output if the resultant intersection is empty.
+    /// Intersect `self` with `other` (in-place), panicking if `self` becomes empty as a result.
+    /// 
+    /// See [`intersection`](Self::intersection) for more info.
     pub fn intersect_nonempty_panicking(&mut self, other: impl Into<Self>)
     {
-        if let Err(e) = self.intersect_nonempty(other) {
-            panic!("{e}");
+        if let Err(e) = self.intersect_nonempty(other) { panic!("{e}") }
+    }
+
+    /// Remove `int` from `self`, first converting `int` to `usize`. If `self` becomes empty as a result, return an `Err`, leaving `self` unchanged.
+    /// 
+    /// See [`try_remove`](Self::try_remove) for more info.
+    pub fn remove_nonempty<R>(&mut self, int: R) -> Result<(), Box<dyn Error + 'static>>
+        where
+            R: AnyInt,
+            <R as TryInto<usize>>::Error: Error + 'static
+    {
+        let int = int.try_into()?;
+        let diff = *self - int;
+
+        if diff.is_empty() {
+            boxerr!(EmptiedBitsetError => "removing `{int:?}` from `{self:?}` resulted in empty bitset");
         }
+
+        *self = diff;
+
+        Ok(())
+    }
+
+    /// Remove `int` from `self`, panicking if `self` becomes empty as a result or `int` cannot be converted to `usize`.
+    /// 
+    /// See [`remove`](Self::remove) for more info.
+    pub fn remove_nonempty_panicking<R>(&mut self, int: R)
+        where
+            R: AnyInt,
+            <R as TryInto<usize>>::Error: Error + 'static
+    {
+        if let Err(e) = self.remove_nonempty(int) { panic!("{e}") }
+    }
+
+    /// (in-place) Filter `self` to keep only elements that fulfil `predicate`. If `self` becomes empty as a result, return an `Err`, leaving `self` unchanged.
+    /// 
+    /// See [`retain`](Self::retain) for more info.
+    pub fn retain_nonempty(&mut self,
+        predicate: impl FnMut(usize) -> bool,
+    ) -> Result<(), Box<dyn Error + 'static>>
+    {
+        let mut copy = self.clone();
+        copy.retain(predicate);
+
+        if copy.is_empty() {
+            boxerr!(EmptiedBitsetError => "matching elements of {copy:?} against predicate resulted in empty bitset")
+        }
+
+        *self = copy;
+
+        Ok(())
+    }
+
+    /// Filter `self` to keep only elements that fulfil `predicate`, panicking if `self` becomes empty as a result.
+    /// 
+    /// See [`retain`](Self::retain) for more info.
+    pub fn retain_nonempty_panicking(&mut self, predicate: impl FnMut(usize) -> bool)
+    {
+        if let Err(e) = self.retain_nonempty(predicate) { panic!("{e}") }
     }
 }
 
 
-/// Cast a `usize` into a `Z`.
-fn into_z<Z>(u: usize) -> Z
-    where Z: PosInt
+/// Cast a `usize` into a non-negative `Z`.
+fn into_z<Z: PosInt>(u: usize) -> Z
 {
     nums::cast::<usize, Z>(u).unwrap()
 }
