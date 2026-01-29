@@ -72,12 +72,16 @@ use natbitset::*;
 
 #[test] fn retain()
 {
+    let mut bitset = byteset![];
+    bitset.retain(|_| true);
+    assert_eq!( bitset, byteset![] );
+
     let mut bitset = byteset![1;8];
-    bitset.retain(|n| true);
+    bitset.retain(|_| true);
     assert_eq!( bitset, byteset![1;8] );
     
     let mut bitset = byteset![1;8];
-    bitset.retain(|n| false);
+    bitset.retain(|_| false);
     assert_eq!( bitset, byteset![] );
 
     let mut bitset = byteset![1;8];
