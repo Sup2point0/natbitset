@@ -1,5 +1,4 @@
 /// Construct and return a boxed error with the given format string message.
-#[macro_export]
 macro_rules! boxerr {
     ($error:expr => $message:expr) =>
     {
@@ -12,3 +11,5 @@ macro_rules! boxerr {
         )
     };
 }
+
+pub(crate) use boxerr;

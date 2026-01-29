@@ -5,6 +5,8 @@ use num_traits as nums;
 
 
 /// Any integer type, such as `i32`, `usize`, `isize`.
+/// 
+/// Used for accepting numbers in operations on a [`Bitset`](crate::Bitset).
 pub trait AnyInt:
     TryInto<usize>
     + nums::PrimInt
@@ -25,6 +27,8 @@ impl<T> AnyInt for T where
 {}
 
 /// A positive integer type, such as `u8`, `u16`, `usize`.
+/// 
+/// Used as the internal backing field of a [`Bitset`](crate::Bitset).
 pub trait PosInt:
     nums::PrimInt
     + nums::Unsigned

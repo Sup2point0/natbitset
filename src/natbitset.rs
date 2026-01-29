@@ -5,6 +5,7 @@ use std::error::Error;
 use num_traits as nums;
 
 use crate::*;
+use crate::util::boxerr;
 
 
 /// An unordered set representing integers in the range `1..=N`.
@@ -158,6 +159,14 @@ impl<Z: PosInt, const N: usize> Bitset<N,Z>
     /// # Panics
     /// 
     /// Panics if `n` is not in the range `1..=N` or cannot be converted to a `usize`.
+    /// 
+    /// # Usage
+    /// 
+    /// ```rust
+    /// # use natbitset::*;
+    /// let singleton = Bitset::<4>::single(1);
+    /// assert_eq!(singleton.members_asc(), vec![1]);
+    /// ```
     pub fn single(int: impl AnyInt + fmt::Debug) -> Self
     {
         let Ok(n) = int.try_into() else {
@@ -205,6 +214,15 @@ impl<Z: PosInt, const N: usize> Bitset<N,Z>
 
 impl<Z: PosInt, T: AnyInt, const N: usize, const M: usize> From<[T; M]> for Bitset<N,Z>
 {
+    /// Construct a `Bitset` with the given integers.
+    /// 
+    /// # Usage
+    /// 
+    /// ```rust
+    /// # use natbitset::*;
+    /// let bitset = Bitset::<8>::from([1, 3, 7]);
+    /// assert_eq!(bitset.members_asc(), vec![1, 3, 7]);
+    /// ```
     fn from(digits: [T; M]) -> Self {
         Self::from_iter(digits)
     }
@@ -792,7 +810,7 @@ impl<Z: PosInt, const N: usize> Bitset<N,Z>
 impl<Z: PosInt, const N: usize> Bitset<N,Z>
     where Z: fmt::Debug
 {
-    /// Intersect `self` with `other` (in-place). If `self` becomes empty as a result, return an `Err`, leaving `self` unchanged.
+    /// (in-place) Intersect `self` with `other`. If `self` becomes empty as a result, return a [`EmptiedBitsetError`], leaving `self` unchanged.
     /// 
     /// See [`intersection`](Self::intersection) for more info.
     pub fn intersect_nonempty(&mut self, other: impl Into<Self>) -> Result<(), Box<dyn Error + 'static>>
@@ -809,7 +827,7 @@ impl<Z: PosInt, const N: usize> Bitset<N,Z>
         Ok(())
     }
 
-    /// Intersect `self` with `other` (in-place), panicking if `self` becomes empty as a result.
+    /// (in-place) Intersect `self` with `other`, panicking if `self` becomes empty as a result.
     /// 
     /// See [`intersection`](Self::intersection) for more info.
     pub fn intersect_nonempty_panicking(&mut self, other: impl Into<Self>)
@@ -817,7 +835,7 @@ impl<Z: PosInt, const N: usize> Bitset<N,Z>
         if let Err(e) = self.intersect_nonempty(other) { panic!("{e}") }
     }
 
-    /// Remove `int` from `self`, first converting `int` to `usize`. If `self` becomes empty as a result, return an `Err`, leaving `self` unchanged.
+    /// Remove `int` from `self`, first by trying to convert `int` to `usize`. If `self` becomes empty as a result, return an [`EmptiedBitsetError`], leaving `self` unchanged.
     /// 
     /// See [`try_remove`](Self::try_remove) for more info.
     pub fn remove_nonempty<R>(&mut self, int: R) -> Result<(), Box<dyn Error + 'static>>
@@ -848,7 +866,7 @@ impl<Z: PosInt, const N: usize> Bitset<N,Z>
         if let Err(e) = self.remove_nonempty(int) { panic!("{e}") }
     }
 
-    /// (in-place) Filter `self` to keep only elements that fulfil `predicate`. If `self` becomes empty as a result, return an `Err`, leaving `self` unchanged.
+    /// (in-place) Filter `self` to keep only elements that fulfil `predicate`. If `self` becomes empty as a result, return an [`EmptiedBitsetError`], leaving `self` unchanged.
     /// 
     /// See [`retain`](Self::retain) for more info.
     pub fn retain_nonempty(&mut self,
