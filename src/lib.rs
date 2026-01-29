@@ -37,3 +37,4 @@ mod natbitset;
 pub use natbitset::{
     Bitset,
 };
+mod errors; pub use errors::*;

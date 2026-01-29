@@ -839,9 +839,7 @@ impl<Z, const N: usize> Bitset<N,Z>
         let intersect = *self & other;
 
         if intersect.is_empty() {
-            return Err(format!(
-                "Intersecting bitsets `{self:?}` and `{other:?}` resulted in empty bitset!"
-            ));
+            boxerr!(EmptiedBitsetError => "intersecting `{self:?}` and `{other:?}` resulted in empty bitset");
         }
 
         *self = intersect;
