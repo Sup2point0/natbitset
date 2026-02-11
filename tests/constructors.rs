@@ -3,13 +3,19 @@ use natbitset::*;
 
 #[test] fn single()
 {
-    assert_eq!( *Bitset::<1>::single(1), 1 );
-    assert_eq!( *Bitset::<8>::single(1), 1 );
+    assert_eq!( *Bitset::<1>::single(1), 0b_0000_0001 );
+    assert_eq!( *Bitset::<8>::single(1), 0b_0000_0001 );
+    assert_eq!( *Bitset::<8>::single(8), 0b_1000_0000 );
+    
+    assert_eq!( *Bitset::<9, u16>::single(9), 1 << 8 );
+    assert_eq!( *Bitset::<128, u128>::single(128), 1 << 127 );
 }
 
 #[test] #[should_panic] fn single_negative() { Bitset::<1>::single(-1); }
 #[test] #[should_panic] fn single_zero() { Bitset::<1>::single(0); }
-#[test] #[should_panic] fn single_exceed() { Bitset::<1>::single(2); }
+#[test] #[should_panic] fn single_exceed_u8() { Bitset::<1>::single(2); }
+#[test] #[should_panic] fn single_exceed_u128() { Bitset::<129, u128>::single(129); }
+#[test] #[should_panic] fn single_huge() { Bitset::<1000, usize>::single(1000); }
 
 #[test] fn none()
 {

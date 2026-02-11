@@ -31,19 +31,19 @@ macro_rules! group {
 fn construct(c: &mut Criterion)
 {
     group!("construction - empty ", c =>
-        " HashSet::from([])"     => HashSet::<usize>::from([]),
+        " HashSet::from([])"     => HashSet::<u8>::from([]),
         " Bitset::<9>::from([])" => Bitset::<9>::from([0; 0]),
         " Bitset::<9>::none()"   => Bitset::<9, u16>::none(),
         " Bitset::<9>::all()"    => Bitset::<9, u16>::all(),
     );
 
     group!("construction - small ", c =>
-        " HashSet::from_iter(1..=9)" => (1..=9).collect::<HashSet<usize>>(),
+        " HashSet::from_iter(1..=9)" => (1..=9).collect::<HashSet<u8>>(),
         " Bitset::from_iter(1..=9)"  => (1..=9).collect::<Bitset::<9, u16>>(),
     );
 
     group!("construction - large ", c =>
-        " HashSet::from_iter(1..=65536)" => (1..=65536).collect::<HashSet<usize>>(),
+        " HashSet::from_iter(1..=65536)" => (1..=65536).collect::<HashSet<u8>>(),
         " Bitset::from_iter(1..=65536)"  => (1..=65536).collect::<Bitset::<65536, u32>>(),
         " Bitset::<65536>::none()"       => Bitset::<65536, u32>::none(),
         " Bitset::<65536>::all()"        => Bitset::<65536, u32>::all(),

@@ -4,7 +4,7 @@
 //! 
 //! You might need this struct if:
 //! 
-//! - You need to efficiently represent *all* integers in a range `1..=N`
+//! - You need to efficiently represent *all* integers in a range `1..=N` for `1 ≤ N ≤ 128`
 //! - You need to perform set-like operations on those integers
 //! - You need better efficiency than `HashSet<usize>`
 //! 
@@ -22,9 +22,13 @@
 //!           ^ ^^
 //! ```
 //! 
-//! This means this `Bitset` represents the set {1, 2, 4}. To represent a Sudoku cell, `N = 9`, so we need a `Bitset::<9>`. But a `u8` can only store 8 bitflags, so we also need to increase to the next size up, `u16`. Hence we need a `Bitset::<9, u16>`.
+//! This means this `Bitset` represents the set {1, 2, 4}. To represent a Sudoku cell with `1..=9`, we need a `Bitset::<9>`. But a `u8` can only store 8 bitflags, so we also need to increase to the next size up, `u16`. Hence we need a `Bitset::<9, u16>`.
 //! 
 //! If you’ve used enum bitflags in C#, TypeScript, etc. this is intended to work exactly like those, but specifically for a range of integers `1..=N`.
+//! 
+//! ## Notes
+//! 
+//! - This data structure is not intended for storing large numbers; the largest `Bitset<128, u128>` can still only store integers `1..=128`.
 //! 
 //! ## Usage
 //! 

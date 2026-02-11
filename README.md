@@ -8,11 +8,11 @@
 
 A super-lightweight set implementation for consecutive natural numbers `1..=N`.
 
-`Bitset` is a drop-in replacement for `HashSet<usize>`. You might want this if you need:
+`Bitset` is a drop-in replacement for `HashSet<u8>`. You might want this if you need:
 
 - To efficiently represent integers in a range `1..=N`
 - To perform set-like operations on those integers
-- Higher speeds and lower memory usage than `HashSet<usize>`
+- Higher speeds and lower memory usage than `HashSet<u8>`
 
 
 <br>
@@ -45,8 +45,8 @@ For guidance on how to use the struct, and the details behind its implementation
 Flexible instantiation:
 
 ```rust
-let left   = Bitset::<4>::none();
-let right  = Bitset::<4>::all();
+let left  = Bitset::<4>::none();
+let right = Bitset::<4>::all();
 ```
 
 Implements the same methods as `HashSet`, and then some:
@@ -56,7 +56,7 @@ left.insert(1);
 right.remove(4);
 
 let _ = left.intersect_nonempty(right);
-let _ = left.max();
+let _ = left.maximum();
 let _ = left.is_single();
 ```
 
@@ -74,22 +74,16 @@ Enforce domain with const generic type parameter, and specify backing type for d
 let bitset = Bitset::<9, u16>::from([1, 2, 4]);
 ```
 
+### Future
+- Working on a growable set structure!
+
 
 <br>
 
 
 ## Performance
 
-`Bitset(z)` represents the set with a *single* integer `z`. The whole data structure is 1 number. This makes it incredibly faster and lighter than a `HashSet<usize>`, especially at scale.
-
-### Memory
-
-| *p* | range         | bitset (*p* bytes) | hashset (*p* bytes / member) |
-| :-- | :------------ | :----------------- | :--------------------------- |
-| 1   | `1 ..= 8`     | `Bitset<_, u8>`    | `HashSet<u8>`                |
-| 2   | `1 ..= 65536` | `Bitset<_, u16>`   | `HashSet<u16>`               |
-| 4   | `1 ..= 2^32`  | `Bitset<_, u32>`   | `HashSet<u32>`               |
-| 8   | `1 ..= 2^64`  | `Bitset<_, u64>`   | `HashSet<u64>`               |
+`Bitset(z)` represents the set with a *single* integer `z`. The whole data structure is 1 number! This makes it much faster and lighter than a `HashSet<u8>`, especially at scale.
 
 ### Speed
 

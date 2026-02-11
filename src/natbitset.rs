@@ -10,26 +10,28 @@ use crate::util::boxerr;
 
 /// An unordered set representing integers in the range `1..=N`.
 /// 
-/// You can treat this as a more memory-efficient `HashSet<usize>` specialised for consecutive natural numbers starting from 1. For the rationale behind how this struct works, please visit the [crate root](crate#rationale).
+/// You can treat this as a more memory-efficient `HashSet<u8>` specialised for consecutive natural numbers starting from 1. For the rationale behind how this struct works, please visit the [crate root](crate#rationale).
 /// 
 /// # Type Parameters
 /// 
 /// - `N` (required): The maximum integer represented by the set.
-///   - A `Bitset<N, _>` represents integers `1..=N`, and will ignore integers outside this range.
 /// - `Z` (optional): The unsigned integer type used to store the bitflags (e.g. `u8`, `u16`, `usize`).
-///   - Defaults to `u8`, which allows the set to represent integers `1..=256`, which should be more than enough to cover most use cases.
 /// 
-/// ## Notes
+/// ## Overview
 /// 
-/// - A subtle distinction is that `Z` dictates how many integers the bitset *could* represent, while `N` tells the struct and programmer how many it actually *does* represent.
+/// - `Z` dictates how many integers the bitset *could* represent, while `N` tells the struct and programmer how many it actually *does* represent.
+///   - A `Bitset<_, u8>` is able to represent integers `1..=8`.
+///   - A `Bitset<N, _>` represents integers `1..=N`, and will ignore integers outside this range.
+///   - `N` can be as large as the number of bits in `Z`, but no larger!
 /// - To optimise space efficiency, you should make `Z` as small as possible for your use case `N`.
+///   - `Z` defaults to `u8`, allowing you to represent `1..=8`.
 ///   - However, if you make it too small such that it can’t represent integers up to `N`, you’ll likely encounter overflow errors caused by bitshifting.[^overflow]
 /// 
 /// [^overflow]: This will hopefully be remedied in future.
 /// 
 /// # Usage
 /// 
-/// `Bitset` is designed to be as ergonomic as possible. It does everything a `HashSet<usize>` could, while implementing bitwise operations to make syntax super lightweight.
+/// `Bitset` is designed to be as ergonomic as possible. It does everything a `HashSet<u8>` could, while implementing bitwise operations to make syntax super lightweight.
 /// 
 /// ## Instantiation
 /// 
@@ -49,8 +51,8 @@ use crate::util::boxerr;
 /// // or even more conveniently:
 /// let bitset = byteset![1;8];
 /// 
-/// // A bitset representing numbers 1..=1000 (need a larger `Z`!)
-/// let bitset = Bitset::<1000, u16>::none();
+/// // A bitset representing numbers 1..=100 (need a larger `Z`!)
+/// let bitset = Bitset::<100, u128>::none();
 /// 
 /// // Or instantiate manually, passing the bit representation directly:
 /// let bitset = Bitset::<4>(0b_0101);
