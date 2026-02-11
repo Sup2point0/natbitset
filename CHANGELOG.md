@@ -1,6 +1,12 @@
 # Changelog
 
 
+## v0.5.1
+
+### Fixes
+- Correct documentation on restrictions for `N`
+
+
 ## v0.5.0
 
 ### Breaking
