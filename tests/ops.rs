@@ -46,6 +46,24 @@ use natbitset::*;
     assert_eq!( bits, byteset![3,4] );
 }
 
+#[test] fn xor_pure()
+{
+    for n in 1..=8 {
+        assert_eq!( byteset![]  ^ byteset![],  byteset![] );
+        assert_eq!( byteset![n] ^ byteset![],  byteset![n] );
+        assert_eq!( byteset![]  ^ byteset![n], byteset![n] );
+        assert_eq!( byteset![n] ^ byteset![n], byteset![] );
+    }
+
+    for p in 1..=7 {
+        for q in (p+1)..=8 {
+            assert_eq!( byteset![p] ^ byteset![q], byteset![p, q] );
+        }
+    }
+
+    assert_eq!( byteset![1,3,7] ^ byteset![1;8], byteset![2,4,5,6,8] );
+}
+
 #[test] fn add_pure()
 {
     assert_eq!( byteset![]    + 1, byteset![1] );
