@@ -46,7 +46,7 @@ use natbitset::*;
     assert_eq!( bits, byteset![3,4] );
 }
 
-#[test] fn xor_pure()
+#[test] fn symmetric_difference_pure()
 {
     for n in 1..=8 {
         assert_eq!( byteset![]  ^ byteset![],  byteset![] );
