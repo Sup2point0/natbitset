@@ -1,6 +1,34 @@
 use natbitset::*;
 
 
+#[test] fn none()
+{
+    assert_eq!( *Bitset::<1>::none(), 0 );
+    assert_eq!( *Bitset::<2>::none(), 0 );
+    assert_eq!( *Bitset::<4>::none(), 0 );
+    assert_eq!( *Bitset::<8>::none(), 0 );
+
+    Bitset::<8, u8>::none();
+    Bitset::<16, u16>::none();
+    Bitset::<32, u32>::none();
+    Bitset::<64, u64>::none();
+    Bitset::<128, u128>::none();
+}
+
+#[test] fn all()
+{
+    assert_eq!( *Bitset::<1>::all(), 0b_1 );
+    assert_eq!( *Bitset::<2>::all(), 0b_11 );
+    assert_eq!( *Bitset::<4>::all(), 0b_1111 );
+    assert_eq!( *Bitset::<8>::all(), 0b_1111_1111 );
+
+    Bitset::<8, u8>::all();
+    Bitset::<16, u16>::all();
+    Bitset::<32, u32>::all();
+    Bitset::<64, u64>::all();
+    Bitset::<128, u128>::all();
+}
+
 #[test] fn single()
 {
     assert_eq!( *Bitset::<1>::single(1), 0b_0000_0001 );
@@ -16,22 +44,6 @@ use natbitset::*;
 #[test] #[should_panic] fn single_exceed_u8() { Bitset::<1>::single(2); }
 #[test] #[should_panic] fn single_exceed_u128() { Bitset::<129, u128>::single(129); }
 #[test] #[should_panic] fn single_huge() { Bitset::<1000, usize>::single(1000); }
-
-#[test] fn none()
-{
-    assert_eq!( *Bitset::<1>::none(), 0 );
-    assert_eq!( *Bitset::<2>::none(), 0 );
-    assert_eq!( *Bitset::<4>::none(), 0 );
-    assert_eq!( *Bitset::<8>::none(), 0 );
-}
-
-#[test] fn all()
-{
-    assert_eq!( *Bitset::<1>::all(), 0b_1 );
-    assert_eq!( *Bitset::<2>::all(), 0b_11 );
-    assert_eq!( *Bitset::<4>::all(), 0b_1111 );
-    assert_eq!( *Bitset::<8>::all(), 0b_1111_1111 );
-}
 
 #[test] fn from_array()
 {
