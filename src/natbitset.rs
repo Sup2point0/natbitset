@@ -14,7 +14,7 @@ use crate::util::boxerr;
 /// 
 /// # Type Parameters
 /// 
-/// - `N` (required): The maximum integer represented by the set.
+/// - `N` (required): The maximum integer represented by the set. Minimum `1`.
 /// - `Z` (optional): The unsigned integer type used to store the bitflags (e.g. `u8`, `u16`, `usize`).
 /// 
 /// ## Overview
@@ -156,6 +156,49 @@ pub struct Bitset<const N: usize, Z = u8>(
 /// Constructor methods.
 impl<Z: PosInt, const N: usize> Bitset<N,Z>
 {
+    /// Construct a set with no bits enabled.
+    /// 
+    /// # Usage
+    /// 
+    /// ```rust
+    /// # use natbitset::*;
+    /// 
+    /// let off = Bitset::<4>::none();
+    /// assert_eq!(*off, 0b_0000);
+    /// ```
+    pub fn none() -> Self
+    {
+        Self( Z::zero() )
+    }
+
+    /// Construct a set with all bits enabled.
+    /// 
+    /// # Usage
+    /// 
+    /// ```rust
+    /// # use natbitset::*;
+    /// 
+    /// let off = Bitset::<4>::all();
+    /// assert_eq!(*off, 0b_1111);
+    /// ```
+    pub fn all() -> Self
+    {
+        const {
+            assert!(N >= 1, "Cannot create a zero-sized `Bitset`: `N >= 1` required");
+        }
+
+        if N == 1 {
+            Self( Z::one() )
+        }
+        else {
+            let head = (1 as u128) << (N - 1);
+            let tail = head - 1;
+            let ones = head | tail;
+
+            Self( into_z(ones) )
+        }
+    }
+
     /// Construct a set with a single integer `int`.
     /// 
     /// # Panics
@@ -180,36 +223,7 @@ impl<Z: PosInt, const N: usize> Bitset<N,Z>
         }
 
         let z = Z::one() << (n - 1);
-        Bitset(z)
-    }
-
-    /// Construct a set with no bits enabled.
-    /// 
-    /// # Usage
-    /// 
-    /// ```rust
-    /// # use natbitset::*;
-    /// 
-    /// let off = Bitset::<4>::none();
-    /// assert_eq!(*off, 0b_0000);
-    /// ```
-    pub fn none() -> Self {
-        Self( Z::zero() )
-    }
-
-    /// Construct a set with all bits enabled.
-    /// 
-    /// # Usage
-    /// 
-    /// ```rust
-    /// # use natbitset::*;
-    /// 
-    /// let off = Bitset::<4>::all();
-    /// assert_eq!(*off, 0b_1111);
-    /// ```
-    pub fn all() -> Self {
-        let z = (1 << N) - 1;
-        let z = into_z(z);
+        
         Self(z)
     }
 }
@@ -897,13 +911,13 @@ impl<Z: PosInt, const N: usize> Bitset<N,Z>
 }
 
 
-/// Cast a `usize` into a non-negative `Z`.
-fn into_z<Z: PosInt>(u: usize) -> Z
+/// Cast a number `u128` into a non-negative `Z`. Panics on failure.
+fn into_z<Num: AnyInt, Z: PosInt>(u: Num) -> Z
 {
-    nums::cast::<usize, Z>(u).unwrap()
+    nums::cast::<Num, Z>(u).unwrap()
 }
 
-/// Cast an integer into a `usize`.
+/// Cast an integer into a `usize`. Panics on failure.
 fn into_usize<N: AnyInt>(n: N) -> usize
 {
     nums::cast::<N, usize>(n).unwrap()
