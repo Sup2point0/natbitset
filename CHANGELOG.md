@@ -1,6 +1,13 @@
 # Changelog
 
 
+## v0.5.2
+
+### Fixes
+- Correct `all()` implementation to avoid overflow
+- Correct documentation for `symmetric_difference()` and `/`
+
+
 ## v0.5.1
 
 ### Fixes
