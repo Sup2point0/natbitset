@@ -450,7 +450,7 @@ impl<Z: PosInt, const N: usize> ops::DivAssign for Bitset<N,Z> {
 impl<Z: PosInt, const N: usize> ops::BitXor for Bitset<N,Z> {
     type Output = Self;
 
-    /// Return the asymmetric difference of `self` and `other`, i.e. the integers that are members of either `self` or `other`, but not both.
+    /// Return the symmetric difference of `self` and `other`, i.e. the integers that are members of either `self` or `other`, but not both.
     fn bitxor(self, other: Self) -> Self::Output {
         (self | other) / (self & other)
     }
@@ -630,7 +630,7 @@ impl<Z: PosInt, const N: usize> Bitset<N,Z>
         self / *other
     }
 
-    /// Return the asymmetric difference of `self` and `other`, i.e. the integers that are members of either `self` or `other`, but not both.
+    /// Return the symmetric difference of `self` and `other`, i.e. the integers that are members of either `self` or `other`, but not both.
     pub fn symmetric_difference(self, other: &Self) -> Self {
         self ^ *other
     }
