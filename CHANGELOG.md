@@ -4,6 +4,7 @@
 ## Next (v0.5.3)
 
 ### Fixes
+- Explicitly implement `PartialEq` and `Eq` to correctly ignore out-of-bounds bits
 - Correct `from_iter()` implementation to ignore duplicates
 
 

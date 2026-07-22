@@ -136,7 +136,7 @@ use crate::util::boxerr;
 /// 
 /// - `Bitset` is **much** more lightweight than `HashSet` – it's only a single integer!
 ///   - `Bitset` implements `Copy`, so you can pass it around without borrowing.
-#[derive(Copy, Clone, Hash, PartialEq, Eq, Default)]
+#[derive(Copy, Clone, Default, Hash)]
 pub struct Bitset<const N: usize, Z = u8>(
     /// The underlying integer used to represent the set. When written in binary, each bit represents whether a number is present in the set (`1` if present, `0` if not).
     /// 
@@ -305,6 +305,15 @@ impl<Z: PosInt, const N: usize> ops::DerefMut for Bitset<N,Z> {
         &mut self.0
     }
 }
+
+impl<Z: PosInt, const N: usize> PartialEq for Bitset<N,Z> {
+    fn eq(&self, other: &Self) -> bool {
+        let normalised = **self & *Self::all();
+        normalised == **other
+    }
+}
+
+impl<Z: PosInt, const N: usize> Eq for Bitset<N,Z> {}
 
 impl<Z: PosInt, const N: usize> Bitset<N,Z> {
     /// Get an iterator over the elements of the set, in descending order.
