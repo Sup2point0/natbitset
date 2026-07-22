@@ -56,6 +56,13 @@ use natbitset::*;
     assert_eq!( *Bitset::<8>::from_iter(vec![1,2,3]), 0b_0111 );
     assert_eq!( *Bitset::<8>::from_iter(vec![2,4,7,8]), 0b_1100_1010 );
     assert_eq!( *Bitset::<8>::from_iter(vec![2,4,7,99]), 0b_0100_1010 );
+
+    // ignore zero
+    assert_eq!( *Bitset::<8>::from_iter(vec![0,1,2,3]), 0b_0111 );
+    // ignore out-of-bounds
+    assert_eq!( *Bitset::<8>::from_iter(vec![1,2,3,9]), 0b_0111 );
+    // ignore duplicates
+    assert_eq!( *Bitset::<8>::from_iter(vec![1,2,3,3]), 0b_0111 );
 }
 
 #[test] fn byteset_macro()

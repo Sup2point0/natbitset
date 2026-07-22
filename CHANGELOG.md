@@ -1,6 +1,12 @@
 # Changelog
 
 
+## Next (v0.5.3)
+
+### Fixes
+- Correct `from_iter()` implementation to ignore duplicates
+
+
 ## v0.5.2
 
 ### Fixes

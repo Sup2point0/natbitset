@@ -252,13 +252,11 @@ impl<Z: PosInt, T: AnyInt, const N: usize> FromIterator<T> for Bitset<N,Z>
         where I: IntoIterator<Item = T>
     {
         let n = nums::cast::<usize, T>(N).unwrap();
-        let zero = T::zero();
 
         Self(
             iter.into_iter()
-                .filter(|t| n >= *t && *t > zero)
-                .map(|t| Z::one() << into_usize(t - T::one()))
-                .sum()
+                .filter(|t| n >= *t && *t > T::zero())
+                .fold(Z::zero(), |acc, t| acc | (Z::one() << into_usize(t - T::one())))
         )
     }
 }
@@ -889,7 +887,7 @@ impl<Z: PosInt, const N: usize> Bitset<N,Z>
         predicate: impl FnMut(usize) -> bool,
     ) -> Result<(), Box<dyn Error + 'static>>
     {
-        let mut copy = self.clone();
+        let mut copy = *self;
         copy.retain(predicate);
 
         if copy.is_empty() {
